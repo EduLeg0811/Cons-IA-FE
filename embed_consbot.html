@@ -369,7 +369,8 @@
     };
 
     const params = new URLSearchParams(window.location.search);
-    const apiBase = (params.get('api') || 'https://cons-ai-server.onrender.com').replace(/\/+$/, '');
+    // TEMPORÁRIO: apontando para o Main-Server local (ver src/lib/config.ts).
+    const apiBase = (params.get('api') || 'http://127.0.0.1:8000').replace(/\/+$/, '');
     const source = (params.get('source') || 'ALLWV').toUpperCase();
     const title = params.get('title') || 'ConsBOT';
     const subtitle = params.get('subtitle') || 'Assistente de IA da Conscienciologia.';

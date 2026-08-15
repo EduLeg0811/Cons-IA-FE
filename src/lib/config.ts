@@ -46,18 +46,27 @@ function loadRuntimeConfig(): AppConfig {
 export const CONFIG: AppConfig = loadRuntimeConfig();
 
 const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-const PROD_BASE = envApi || 'https://cons-ai-server.onrender.com';
+
+// TEMPORÁRIO: enquanto o Main-Server não tem deploy próprio, todas as chamadas
+// vão para o servidor local. O antigo PROD_BASE apontava para o backend Flask
+// desativado (https://cons-ai-server.onrender.com); quando houver URL nova,
+// basta restaurar o fallback de produção aqui.
+const LOCAL_BASE = 'http://127.0.0.1:8000';
 
 function resolveApiBaseUrl(): string {
-  const isFile = location.protocol === 'file:';
-  const host = location.hostname || '';
-  const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
+  // VITE_API_URL continua vencendo, para apontar a um servidor remoto sem editar código.
+  if (envApi) {
+    return envApi;
+  }
 
-  if (isLocalHost) {
+  // Servido pelo dev server do Vite (inclusive via IP da rede): caminho
+  // relativo passa pelo proxy configurado em vite.config.js, sem CORS.
+  if (import.meta.env.DEV) {
     return '';
   }
 
-  return isFile ? 'http://127.0.0.1:8000' : PROD_BASE;
+  // Build estático ou abertura via file:// — precisa da URL absoluta.
+  return LOCAL_BASE;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
