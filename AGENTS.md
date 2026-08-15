@@ -1,4 +1,4 @@
-# Repository Editing Rules
+# Repository Editing Rules OK
 
 - All text source files in this repository must be saved as UTF-8 without BOM.
 - Prefer normal Unicode characters in source code when the file already contains them.
