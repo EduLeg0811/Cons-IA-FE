@@ -1,0 +1,485 @@
+/* ==========================================================================
+   💬 CHAT / MENSAGENS, ENTRADA E TEMAS
+   --------------------------------------------------------------------------
+   Interface de conversação: lista de mensagens, balões, campo de entrada e botões. Contém também ajustes específicos do tema .theme-bots para o chat.
+   ========================================================================== */
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-6) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-height: 60vh;
+}
+
+.chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    max-width: 80%;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-message.bot {
+    align-self: flex-start;
+}
+
+.message-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: var(--text-lg);
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+}
+
+.message-avatar.user {
+    background: #f6fff8;        /* verde bem claro */
+    color: #3a513a;             /* verde escuro para o ícone/letra */
+}
+
+.message-content.user {
+    background: #f6fff8;        /* verde bem claro */
+    color: #3a513a;             /* verde escuro para o ícone/letra */
+    
+}
+
+.theme-bots .chat-message.user .message-content p {
+    margin: 0;
+}
+
+
+
+/* Badges de sugestões iniciais do RagBOT: mesma paleta das mensagens do usuário */
+.theme-bots .initial-quests-badge {
+    background: #f6fff8;
+    color: #3a513a;
+}
+
+
+.chat-input-container {
+    background: transparent;
+    backdrop-filter: none;
+    border: none;
+    border-radius: var(--space-8);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-lg);
+    margin-top: auto;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-4);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--space-6);
+    padding: var(--space-4);
+    transition: all var(--transition-fast);
+}
+
+.chat-input-wrapper:focus-within {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 3px rgb(14 165 233 / 0.1);
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--text-base);
+    min-height: 12px;
+    max-height: 120px;
+    resize: none;
+    line-height: 1.5;
+    background: transparent;
+    color: var(--gray-800);
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-family: inherit;
+}
+
+.theme-bots .chat-input { padding: 4px 0; line-height: 1.4; }
+
+.chat-input:focus {
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+.chat-input::placeholder {
+    color: var(--gray-400);
+    font-family: inherit;
+}
+
+.chat-send-btn {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-800);  /* padrão geral, sobrescrito em theme-bots */
+    border: none;
+    border-radius: var(--radius-xl);
+    color: var(--white);
+    font-size: var(--text-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.chat-send-btn:hover:not(:disabled) {
+    background: var(--primary-700);  /* hover ainda mais escuro */
+    transform: scale(1.05);
+}
+
+/* No módulo RAGbot (theme-bots), o botão de envio é o mesmo searchButton,
+   mas com cor fixa verde. */
+.theme-bots .search-button {
+    background: var(--bots-primary);      /* verde escuro suave para o estado normal */
+}
+
+.theme-bots .search-button:hover:not(:disabled) {
+    background: var(--bots-primary);      /* verde um pouco mais escuro no hover */
+}
+
+/* Estado de carregamento do botão de envio do RagBOT:
+   o ícone de paper-plane some e aparece um spinner branco discreto dentro do botão verde. */
+.theme-bots .search-button.ragbot-loading {
+    position: relative;
+}
+
+.theme-bots .search-button.ragbot-loading i {
+    visibility: hidden !important; /* esconde totalmente o paper-plane */
+}
+
+.theme-bots .search-button.ragbot-loading::after {
+    content: '';
+    position: absolute;
+    inset: 10px; /* deixa uma margem interna para o spinner, menor que o botão */
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+}
+
+.theme-bots .chat-message.bot {
+    max-width: 100%;
+    width: 100%;
+    gap: 0;
+}
+
+.theme-bots .chat-message.bot .message-content {
+    width: 100%;
+    flex: 1;
+    padding: var(--space-5) var(--space-6); /* área respirada para o texto principal */
+}
+
+.theme-bots .chat-input-wrapper { margin-top: auto; }
+
+/* Listas principais: levemente mais compactas que parágrafos, com recuo suave */
+.theme-bots .chat-message.bot .message-content .markdown-content ul,
+.theme-bots .chat-message.bot .message-content .markdown-content ol {
+    margin: 0.7em 0 0.7em 0;
+    padding-left: 1.25em;        /* recuo clássico de lista */
+    list-style-position: outside;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+/* Parágrafo imediatamente antes/depois de lista: separação visual suave */
+.theme-bots .chat-message.bot .message-content .markdown-content p + ul,
+.theme-bots .chat-message.bot .message-content .markdown-content p + ol,
+.theme-bots .chat-message.bot .message-content .markdown-content ul + p,
+.theme-bots .chat-message.bot .message-content .markdown-content ol + p {
+    margin-top: 0.5em;
+}
+
+/* Conteúdo dentro de cada item permanece em fluxo normal */
+.theme-bots .chat-message.bot .message-content .markdown-content li p {
+    display: block;
+    margin: 0.1em 0 0.1em 0;
+}
+
+.theme-bots .chat-send-btn:hover:not(:disabled) { background: var(--bots-secondary); }
+
+.theme-bots .chat-input-wrapper:focus-within {
+    border-color: var(--bots-primary);
+    box-shadow: 0 0 0 3px rgb(16 185 129 / 0.12); /* subtle green glow */
+}
+
+/* Slightly smaller font for user questions (chat bubbles) */
+.theme-bots .chat-message.user .message-content {
+    font-size: var(--text-base);
+}
+
+
+/* Tamanhos de headers nas respostas do RAGBOT */
+.theme-bots .chat-message.bot .message-content .markdown-content h1 { font-size: var(--text-lg); }
+.theme-bots .chat-message.bot .message-content .markdown-content h2 { font-size: var(--text-base); }
+.theme-bots .chat-message.bot .message-content .markdown-content h3 { font-size: var(--text-sm); }
+.theme-bots .chat-message.bot .message-content .markdown-content h4 { font-size: var(--text-xs); }
+.theme-bots .chat-message.bot .message-content .markdown-content h5 { font-size: var(--text-xs); }
+.theme-bots .chat-message.bot .message-content .markdown-content h6 { font-size: var(--text-xs); }
+
+/* Tipografia geral do conteúdo Markdown (estilo ChatGPT) */
+.theme-bots .chat-message.bot .message-content .markdown-content {
+    color: var(--gray-800);
+    font-size: var(--text-sm);
+    line-height: 1.65;            /* um pouco mais solto para blocos longos */
+    word-break: break-word;
+}
+
+.theme-bots .chat-message.bot .message-content .markdown-content > :first-child { margin-top: 0; }
+.theme-bots .chat-message.bot .message-content .markdown-content > :last-child { margin-bottom: 0; }
+
+.theme-bots .chat-message.bot .message-content .markdown-content p {
+    margin: 0.72em 0;             /* leve respiro entre parágrafos */
+}
+.theme-bots .chat-message.bot .message-content .markdown-content strong { font-weight: 700; }
+.theme-bots .chat-message.bot .message-content .markdown-content em { font-style: italic; }
+
+.theme-bots .chat-message.bot .message-content .markdown-content h1,
+.theme-bots .chat-message.bot .message-content .markdown-content h2,
+.theme-bots .chat-message.bot .message-content .markdown-content h3,
+.theme-bots .chat-message.bot .message-content .markdown-content h4,
+.theme-bots .chat-message.bot .message-content .markdown-content h5,
+.theme-bots .chat-message.bot .message-content .markdown-content h6 {
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 1.1em 0 0.5em 0;
+}
+
+.theme-bots .chat-message.bot .message-content .markdown-content hr {
+    border: 0;
+    border-top: 1px solid var(--gray-200);
+    margin: 1.2em 0;
+}
+
+.theme-bots .chat-message.bot .message-content .markdown-content a {
+    color: var(--primary-600);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.theme-bots .chat-message.bot .message-content .markdown-content a:hover {
+    color: var(--primary-700);
+}
+
+/* Listas aninhadas mais elegantes (níveis > 1 genéricos) */
+.theme-bots .chat-message.bot .message-content .markdown-content ul ul,
+.theme-bots .chat-message.bot .message-content .markdown-content ol ol,
+.theme-bots .chat-message.bot .message-content .markdown-content ul ol,
+.theme-bots .chat-message.bot .message-content .markdown-content ol ul {
+    margin: 0.35em 0 0.35em 1.2em;
+    font-size: 0.95em;
+}
+
+/* Caso específico: bullets como subitens de lista numerada
+   ol li > ul (com ou sem <p> intermediário) → bullets alinhados com o TEXTO do item numerado,
+   sem recuo horizontal extra além da própria lista. */
+.theme-bots .chat-message.bot .message-content .markdown-content ol li > ul {
+    margin: 0.35em 0 0.35em 0;   /* nenhuma margem horizontal extra em relação ao li */
+    padding-left: 1.25em;        /* mesmo padding das listas principais */
+    list-style-position: outside;
+}
+
+/* Compactação diferenciada: bullets ligeiramente mais compactos que listas numeradas */
+.theme-bots .chat-message.bot .message-content .markdown-content ul li + li {
+    margin-top: 0.18em;
+}
+
+.theme-bots .chat-message.bot .message-content .markdown-content ol li + li {
+    margin-top: 0.3em;
+}
+
+/* Citações (blockquote) */
+.theme-bots .chat-message.bot .message-content .markdown-content blockquote {
+    margin: 0.9em 0;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--gray-300);
+    color: var(--gray-700);
+}
+
+/* Código inline e blocos de código */
+.theme-bots .chat-message.bot .message-content .markdown-content code {
+    background: var(--gray-100);
+    color: var(--gray-900);
+    padding: 0.15em 0.35em;
+    border-radius: var(--radius-sm);
+    font-size: 0.92em;
+}
+
+.theme-bots .chat-message.bot .message-content .markdown-content pre {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    overflow: auto;
+    line-height: 1.5;
+    margin: 0.9em 0;
+}
+.theme-bots .chat-message.bot .message-content .markdown-content pre code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.92em;
+}
+
+/* Tabelas */
+.theme-bots .chat-message.bot .message-content .markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    font-size: 0.94em;
+}
+.theme-bots .chat-message.bot .message-content .markdown-content th,
+.theme-bots .chat-message.bot .message-content .markdown-content td {
+    border: 1px solid var(--gray-200);
+    padding: 0.5em 0.6em;
+    text-align: left;
+}
+.theme-bots .chat-message.bot .message-content .markdown-content thead th {
+    background: var(--gray-50);
+    color: var(--gray-800);
+}
+.theme-bots .chat-message.bot .message-content .markdown-content tbody tr:nth-child(even) {
+    background: var(--gray-50);
+}
+
+/* Mídia */
+.theme-bots .chat-message.bot .message-content .markdown-content img,
+.theme-bots .chat-message.bot .message-content .markdown-content video {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+}
+
+
+/* Compactação responsiva */
+@media (max-width: 768px) {
+    .chat-messages { gap: var(--space-4); }
+    .message-avatar { width: 40px; height: 40px; font-size: var(--text-base); }
+    .theme-bots .chat-message.bot .message-content { padding: var(--space-4) var(--space-5); }
+    .theme-bots .chat-message.bot .message-content .markdown-content { font-size: var(--text-xs); line-height: 1.55; }
+    .theme-bots .chat-message.bot .message-content .markdown-content h1 { font-size: var(--text-base); }
+    .theme-bots .chat-message.bot .message-content .markdown-content h2 { font-size: var(--text-sm); }
+    .theme-bots .chat-message.bot .message-content .markdown-content h3 { font-size: var(--text-xs); }
+    .theme-bots .chat-message.bot .message-content .markdown-content pre { padding: var(--space-4); }
+
+    /* Badges e texto explicativo menores em telas responsivas */
+    .ragbot-mode-badge { font-size: 0.7rem; padding: 0.35rem 0.85rem; }
+    .ragbot-mode-description { font-size: 0.6rem; }
+}
+
+@media (max-width: 480px) {
+    .chat-messages { gap: var(--space-3); }
+    .message-avatar { width: 36px; height: 36px; font-size: var(--text-sm); }
+    .theme-bots .chat-message.bot .message-content { padding: var(--space-4); }
+    .theme-bots .chat-message.bot .message-content .markdown-content { font-size: 12.5px; line-height: 1.5; }
+    .theme-bots .chat-message.user .message-content { font-size: var(--text-sm); }
+    .theme-bots .chat-message.bot .message-content .markdown-content table { font-size: 0.9em; }
+}
+
+
+
+
+/* Temas do RagBot - Waldo, Ingles, etc */
+
+/* Container dos botões da barra principal de modos */
+.ragbot-modes {
+    display: flex;
+    flex-direction: column;   /* cada modo em uma linha */
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.ragbot-mode-row {
+    display: flex;            /* badge + descrição na mesma linha */
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ragbot-mode-description {
+    color: #777777;           /* cinza ~50% para o texto explicativo */
+    font-size: 0.85rem;
+}
+
+/* Container dos badges de modos ATIVOS abaixo da linha de busca */
+#ragbot-current-mode-container {
+    display: block;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+/* Botões genéricos */
+.ragbot-mode-badge {
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.8;               /* menos lavado para o texto aparecer melhor */
+    color: #000000;             /* texto bem escuro (preto) para máxima legibilidade */
+}
+
+/* ---- COR DO BADGE DE MODO: segue sempre o tema atual (--bots-primary) ----     */
+.theme-bots .ragbot-mode-badge {
+    background-color: var(--bots-primary);
+}
+
+/* Badges que exibem os modos atualmente ativos (abaixo da search-row) */
+.theme-bots .ragbot-mode-badge.ragbot-mode-current {
+    display: inline-block;
+    margin-left: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid #d4d4d4;          /* cinza ~ var(--gray-300) */
+    background-color: #fff6dc;        /* laranja claro suave */
+}
+
+
+/* ---- QUANDO ESTIVER SELECIONADO ---- */
+.ragbot-mode-badge.active {
+    opacity: 1;                     /* cor normal, ainda mais nítido */
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+/* Garante que em theme-bots a cor escura do texto prevaleça nos badges */
+.theme-bots .ragbot-mode-badge {
+    color: #000000;
+}
+
+/* hover (apenas leve resposta visual) */
+.ragbot-mode-badge:hover {
+    opacity: 0.75;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

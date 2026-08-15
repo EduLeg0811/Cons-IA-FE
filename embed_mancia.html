@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embed Bibliomancia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/styles/style.css">
+  <link rel="icon" type="image/png" href="/icon.png">
+  <style>
+    html,
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body.theme-apps {
+      min-height: auto;
+      background: transparent;
+    }
+
+    .embed-shell {
+      max-width: 920px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 12px;
+      box-sizing: border-box;
+    }
+
+    .embed-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    .embed-header-copy {
+      min-width: 0;
+      flex: 0 0 auto;
+    }
+
+    .embed-header-copy > * {
+      min-width: 0;
+    }
+
+    .embed-header-text {
+      min-width: 0;
+    }
+
+    .embed-header-text .embed-title,
+    .embed-header-text .embed-subtitle {
+      overflow-wrap: anywhere;
+    }
+
+    .embed-header-icon-link {
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .embed-header-copy {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .embed-header-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-xl);
+      background: transparent;
+      color: var(--apps-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: transform 160ms ease, opacity 160ms ease, filter 160ms ease;
+    }
+
+    .embed-header-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .embed-header-icon:hover {
+      transform: translateY(-1px) scale(1.04);
+      opacity: 0.94;
+      filter: saturate(1.05);
+    }
+
+    .embed-title {
+      margin: 0;
+      color: var(--gray-900);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .embed-subtitle {
+      margin: 2px 0 0;
+      color: var(--gray-600);
+      font-size: 0.88rem;
+      line-height: 1.35;
+      font-style: italic;
+    }
+
+    .embed-mancia-action {
+      flex: 0 0 auto;
+      display: inline-flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      margin-left: 40px;
+      padding: 0;
+    }
+
+    .embed-mancia-lo-badge {
+      width: 85px;
+      height: 85px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .embed-mancia-lo-badge img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .embed-mancia-button {
+      display: inline-flex !important;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 !important;
+      background: var(--apps-primary) !important;
+      color: var(--white) !important;
+      border: none !important;
+      box-shadow: var(--shadow-sm);
+      padding: 12px 18px;
+      font-size: 0.96rem;
+      font-weight: 600;
+      border-radius: 18px;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .embed-mancia-button:hover:not(:disabled) {
+      background: var(--apps-secondary) !important;
+    }
+
+    .embed-mancia-button i {
+      display: block;
+      line-height: 1;
+      color: inherit;
+    }
+
+    .embed-mancia-button.mancia-loading i,
+    .embed-mancia-button.mancia-loading span {
+      opacity: 0;
+    }
+
+    .embed-mancia-button.mancia-loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 18px;
+      height: 18px;
+      margin: auto;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.88);
+      border-top-color: transparent;
+      animation: embedSpin 0.7s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes embedSpin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .embed-shell {
+        padding: 8px;
+        gap: 10px;
+      }
+
+      .embed-title {
+        font-size: 1rem;
+      }
+
+      .embed-subtitle {
+        font-size: 0.84rem;
+      }
+    }
+  </style>
+</head>
+<body class="theme-apps">
+  <div class="embed-shell">
+    <div class="embed-header">
+      <a class="embed-header-icon-link" id="brandLink" href="index.html" target="_top" aria-label="Voltar à página inicial do Cons-IA">
+        <div class="embed-header-icon">
+          <img src="/icon.png" alt="Cons-IA">
+        </div>
+      </a>
+      <div class="embed-header-copy">
+        <div class="embed-header-text">
+          <h1 class="embed-title" id="title">Bibliomancia</h1>
+          <p class="embed-subtitle" id="subtitle">Sorteio e análise de ortopensata com IA.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="embed-mancia-action">
+     <!--  <div class="embed-mancia-lo-badge" aria-hidden="true">
+        <img src="/public/LO.png" alt="">
+      </div> -->
+      <button id="drawButton" class="embed-mancia-button" type="button">
+        <i class="fas fa-book-open"></i>
+        <span>Ortopensata</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const apiBase = (params.get('api') || 'https://cons-ai-server.onrender.com').replace(/\/+$/, '');
+    const title = params.get('title') || 'Bibliomancia';
+    const subtitle = params.get('subtitle') || 'Sorteio e análise de ortopensata com IA.';
+    const popupPath = params.get('popup') || '/index_mancia.html';
+
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const drawButtonEl = document.getElementById('drawButton');
+    titleEl.textContent = title;
+    subtitleEl.textContent = subtitle;
+
+    function openInNewTabSilently(url) {
+      const tempLink = document.createElement('a');
+      tempLink.href = url;
+      tempLink.target = '_blank';
+      tempLink.rel = 'noopener noreferrer';
+      tempLink.style.display = 'none';
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      tempLink.remove();
+      return true;
+    }
+
+    function openManciaPopup() {
+      const popupUrl = new URL(popupPath, window.location.href);
+      popupUrl.searchParams.set('api', apiBase);
+      popupUrl.searchParams.set('autostart', '1');
+
+      const popupWidth = Math.min(Math.max(window.screen?.availWidth ? Math.round(window.screen.availWidth * 0.78) : 1100, 960), 1440);
+      const popupHeight = Math.min(Math.max(window.screen?.availHeight ? Math.round(window.screen.availHeight * 0.84) : 820, 720), 1200);
+      const popupLeft = Math.max(0, Math.round(((window.screen?.availWidth || popupWidth) - popupWidth) / 2));
+      const popupTop = Math.max(0, Math.round(((window.screen?.availHeight || popupHeight) - popupHeight) / 2));
+      const popupFeatures = [
+        'popup=yes',
+        'noopener=yes',
+        'noreferrer=yes',
+        `width=${popupWidth}`,
+        `height=${popupHeight}`,
+        `left=${popupLeft}`,
+        `top=${popupTop}`,
+        'resizable=yes',
+        'scrollbars=yes'
+      ].join(',');
+
+      const popupWindow = window.open(popupUrl.toString(), 'manciaPopup', popupFeatures);
+      if (!popupWindow) {
+        return openInNewTabSilently(popupUrl.toString());
+      }
+
+      try {
+        popupWindow.focus();
+      } catch {}
+      return true;
+    }
+
+    function drawPensata() {
+      if (drawButtonEl.disabled) {
+        return;
+      }
+
+      drawButtonEl.disabled = true;
+      drawButtonEl.classList.add('mancia-loading');
+
+      try {
+        openManciaPopup();
+      } finally {
+        drawButtonEl.disabled = false;
+        drawButtonEl.classList.remove('mancia-loading');
+      }
+    }
+
+    drawButtonEl.addEventListener('click', drawPensata);
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+* text=auto eol=crlf
+
+*.html text working-tree-encoding=UTF-8 eol=crlf
+*.css text working-tree-encoding=UTF-8 eol=crlf
+*.js text working-tree-encoding=UTF-8 eol=crlf
+*.json text working-tree-encoding=UTF-8 eol=crlf
+*.md text working-tree-encoding=UTF-8 eol=crlf
+*.py text working-tree-encoding=UTF-8 eol=crlf
+*.txt text working-tree-encoding=UTF-8 eol=crlf
