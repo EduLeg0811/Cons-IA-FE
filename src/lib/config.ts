@@ -1,6 +1,5 @@
 export interface AppConfig {
   MODEL_LLM: string;
-  MODEL_RAGBOT: string;
   TEMPERATURE: number;
   LLM_MAX_RESULTS: number;
   MAX_OUTPUT_TOKENS: number;
@@ -12,11 +11,11 @@ export interface AppConfig {
 
 const DEFAULT_CONFIG: AppConfig = {
   MODEL_LLM: 'gpt-5.4-mini',
-  MODEL_RAGBOT: 'gpt-5.4-mini',
   TEMPERATURE: 0.3,
   LLM_MAX_RESULTS: 3,
   MAX_OUTPUT_TOKENS: 1000,
   MAX_RESULTS_DISPLAY: 100,
+  // Apesar do nome herdado do ragbot, hoje só a Bibliomancia usa este vector store.
   OPENAI_RAGBOT: 'ALLWV',
   FULL_BADGES: false,
   DESCRITIVOS: true,

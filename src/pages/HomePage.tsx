@@ -204,14 +204,6 @@ export function HomePage() {
                 external
                 onClick={() => logClick('conslm', 'ConsLM', '#')}
               />
-              {/* <ToolCard
-                href="index_ragbot.html"
-                title="ConsBOT"
-                description={<em>Chatbot da Conscienciologia</em>}
-                icon={<i className="fa-solid fa-graduation-cap" />}
-                iconVariant="bots"
-              /> */}
-
               <ToolCard
                 href="https://consbot.vercel.app/"
                 title="ConsBOT"
