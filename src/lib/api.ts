@@ -63,45 +63,42 @@ export async function callRandomPensata(params: RandomPensataParams): Promise<Pe
   return response.json();
 }
 
-// Os modelos GPT-5.6 são de raciocínio e rejeitam `temperature`; o comportamento
-// é ajustado por reasoning_effort e verbosity.
+// Contrato único de /api/llm. Os modelos GPT-5.6 são de raciocínio e rejeitam
+// `temperature`; o comportamento é ajustado por reasoningEffort e verbosity.
 export interface LlmQueryParams {
   query: string;
   model: string;
-  llm_max_results: number;
-  max_output_tokens: number;
-  vector_store_names: string | string[];
-  instructions: string | null;
-  use_session: boolean;
-  reasoning_effort?: string;
+  vectorStores: string[];
+  systemPrompt: string | null;
+  vectorMaxResults?: number;
+  maxOutputTokens?: number;
+  reasoningEffort?: string;
   verbosity?: string;
-  chat_id?: string;
+  // Devolvido como `responseId`; reenvie para continuar a conversa.
+  previousResponseId?: string;
   signal?: AbortSignal;
   timeout_ms?: number;
 }
 
 export interface LlmResponse {
-  error?: string;
-  message?: string;
-  abort?: boolean;
-  response?: string;
-  limit_status?: string;
-  text: string;
-  citations?: string;
-  total_tokens_used?: number;
-  type?: string;
+  content: string;
+  references?: string[];
+  citations?: Array<Record<string, unknown>>;
+  responseId?: string;
   model?: string;
-  reasoning_effort?: string;
-  verbosity?: string;
-  results?: Array<{ text?: string }>;
+  usage?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
 export async function callLlm(params: LlmQueryParams): Promise<LlmResponse> {
-  const { signal: externalSignal, timeout_ms, instructions, ...rest } = params;
-  // O Main-Server tipa `instructions` como str e cai para o default do backend
-  // quando o campo está ausente; enviar null quebraria a validação.
-  const body = instructions == null ? rest : { ...rest, instructions };
+  const { signal: externalSignal, timeout_ms, query, systemPrompt, ...rest } = params;
+  // O endpoint recebe `messages`; `systemPrompt` ausente cai para o default do
+  // servidor, então null é omitido em vez de enviado.
+  const body = {
+    ...rest,
+    messages: [{ role: 'user', content: query }],
+    ...(systemPrompt == null ? {} : { systemPrompt }),
+  };
   const controller = new AbortController();
   const timeoutMs = Number(timeout_ms) > 0 ? Number(timeout_ms) : 60000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -110,7 +107,7 @@ export async function callLlm(params: LlmQueryParams): Promise<LlmResponse> {
   externalSignal?.addEventListener('abort', onExternalAbort, { once: true });
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/llm/query`, {
+    const response = await fetch(`${API_BASE_URL}/api/llm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

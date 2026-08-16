@@ -27,13 +27,13 @@ export async function commentBibliomanciaPensata(text: string, signal?: AbortSig
   return callLlm({
     query: `Comente a seguinte Pensata: ${text}`,
     model: CONFIG.MODEL_LLM,
-    reasoning_effort: CONFIG.REASONING_EFFORT,
+    reasoningEffort: CONFIG.REASONING_EFFORT,
     verbosity: CONFIG.VERBOSITY,
-    llm_max_results: CONFIG.LLM_MAX_RESULTS,
-    max_output_tokens: CONFIG.MAX_OUTPUT_TOKENS,
-    vector_store_names: CONFIG.OPENAI_RAGBOT,
-    instructions: COMMENTARY_INSTRUCTIONS,
-    use_session: false,
+    vectorMaxResults: CONFIG.LLM_MAX_RESULTS,
+    maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS,
+    // Rótulo; o servidor resolve para o id do vector store.
+    vectorStores: [CONFIG.OPENAI_RAGBOT],
+    systemPrompt: COMMENTARY_INSTRUCTIONS,
     timeout_ms: 30000,
     signal,
   });

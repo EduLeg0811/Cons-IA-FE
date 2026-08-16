@@ -30,7 +30,7 @@ export function LandingBibliomanciaCard() {
 
     try {
       const response = await commentBibliomanciaPensata(text, controller.signal);
-      const commentary = String(response?.text ?? '').trim();
+      const commentary = String(response?.content ?? '').trim();
       if (!commentary) throw new Error('O comentário da IA não foi retornado.');
       if (controller.signal.aborted) return;
 

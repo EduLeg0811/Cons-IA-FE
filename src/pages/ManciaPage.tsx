@@ -37,7 +37,7 @@ export function ManciaPage() {
 
       const commentaryData = await commentBibliomanciaPensata(text);
 
-      const commentary = commentaryData?.text ?? '';
+      const commentary = commentaryData?.content ?? '';
       setCommentaryText(commentary);
       setStage('done');
 
@@ -50,7 +50,7 @@ export function ManciaPage() {
             metadata: { title: 'Pensata Sorteada', content: text, order: 1 },
           },
           {
-            text: commentaryData?.results?.[0]?.text || commentary || '',
+            text: commentary || '',
             source: 'Comentário',
             type: 'mancia',
             metadata: { title: 'Comentário', content: commentary, order: 2 },
