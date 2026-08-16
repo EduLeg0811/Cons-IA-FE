@@ -27,7 +27,8 @@ export async function commentBibliomanciaPensata(text: string, signal?: AbortSig
   return callLlm({
     query: `Comente a seguinte Pensata: ${text}`,
     model: CONFIG.MODEL_LLM,
-    temperature: CONFIG.TEMPERATURE,
+    reasoning_effort: CONFIG.REASONING_EFFORT,
+    verbosity: CONFIG.VERBOSITY,
     llm_max_results: CONFIG.LLM_MAX_RESULTS,
     max_output_tokens: CONFIG.MAX_OUTPUT_TOKENS,
     vector_store_names: CONFIG.OPENAI_RAGBOT,

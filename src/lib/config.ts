@@ -1,6 +1,7 @@
 export interface AppConfig {
   MODEL_LLM: string;
-  TEMPERATURE: number;
+  REASONING_EFFORT: string;
+  VERBOSITY: string;
   LLM_MAX_RESULTS: number;
   MAX_OUTPUT_TOKENS: number;
   MAX_RESULTS_DISPLAY: number;
@@ -10,8 +11,11 @@ export interface AppConfig {
 }
 
 const DEFAULT_CONFIG: AppConfig = {
-  MODEL_LLM: 'gpt-5.4-mini',
-  TEMPERATURE: 0.3,
+  // Espelha MODEL_DEFAULT em Main-Server/app/config.py. Sem temperatura: os
+  // modelos GPT-5.6 rejeitam o parâmetro.
+  MODEL_LLM: 'gpt-5.6-terra',
+  REASONING_EFFORT: 'low',
+  VERBOSITY: 'low',
   LLM_MAX_RESULTS: 3,
   MAX_OUTPUT_TOKENS: 1000,
   MAX_RESULTS_DISPLAY: 100,

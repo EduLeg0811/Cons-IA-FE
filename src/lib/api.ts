@@ -63,10 +63,11 @@ export async function callRandomPensata(params: RandomPensataParams): Promise<Pe
   return response.json();
 }
 
+// Os modelos GPT-5.6 são de raciocínio e rejeitam `temperature`; o comportamento
+// é ajustado por reasoning_effort e verbosity.
 export interface LlmQueryParams {
   query: string;
   model: string;
-  temperature: number;
   llm_max_results: number;
   max_output_tokens: number;
   vector_store_names: string | string[];
@@ -90,7 +91,8 @@ export interface LlmResponse {
   total_tokens_used?: number;
   type?: string;
   model?: string;
-  temperature?: number;
+  reasoning_effort?: string;
+  verbosity?: string;
   results?: Array<{ text?: string }>;
   [key: string]: unknown;
 }
