@@ -30,12 +30,17 @@ export function LandingNavbar({
             alt="Cons-IA"
             className="h-12 w-12 transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_color-mix(in_oklch,var(--primary)_40%,transparent)]"
           />
-          <span className="flex items-center gap-2">
-            <span className="font-landing-body text-2xl font-medium tracking-tight text-foreground">
-              Cons<em className="landing-brand-ia text-primary">IA</em>
+          <span className="flex min-w-0 items-center gap-2">
+            {/* Título Principal: ConsIA */}
+            <h1 className="max-w-[14rem] truncate font-nunito text-xl font-normal tracking-tight text-foreground sm:max-w-none">
+              Cons<em className="ml-[4px] italic text-primary">IA</em>
+            </h1>
+            {/* Separador Vertical */}
+            <span className="hidden h-4 w-px bg-border sm:inline mx-1" />
+            {/* Subtítulo: Ferramentas de IA da Conscienciologia */}
+            <span className="hidden font-nunito-sans text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline">
+              Ferramentas de IA da Conscienciologia
             </span>
-            <span className="hidden h-4 w-px bg-border sm:inline" />
-            <span className="font-landing-body hidden text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline">Ferramentas de IA para a Conscienciologia</span>
           </span>
         </a>
 

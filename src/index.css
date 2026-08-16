@@ -35,6 +35,8 @@
 
   --font-serif-display: 'Lora', ui-serif, Georgia, serif;
   --font-sans-body: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: 'Nunito', 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-nunito-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono-code: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
 
   --font-sans: var(--font-sans-body);
