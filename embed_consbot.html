@@ -406,8 +406,6 @@
     function openConsbotPopup(query) {
       const popupUrl = new URL(popupPath, window.location.href);
       popupUrl.searchParams.set('question', query);
-      popupUrl.searchParams.set('source', source);
-      popupUrl.searchParams.set('api', apiBase);
 
       const popupWidth = Math.min(Math.max(window.screen?.availWidth ? Math.round(window.screen.availWidth * 0.78) : 1100, 960), 1440);
       const popupHeight = Math.min(Math.max(window.screen?.availHeight ? Math.round(window.screen.availHeight * 0.84) : 820, 720), 1200);

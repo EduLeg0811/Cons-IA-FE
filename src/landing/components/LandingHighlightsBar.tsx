@@ -19,7 +19,7 @@ const HIGHLIGHTED_APPS: HighlightedAppSelection[] = [
   { categoryKey: 'busca', appTitle: 'Verbetes', appText: 'Busca em Verbetes' },
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Livros', appText: 'Bibliografia de Livros' },
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Verbetes', appText: 'Bibliografia de Verbetes' },
-  { categoryKey: 'bots', appTitle: 'ConsGPT', appText: 'ConsGPT' },
+  //{ categoryKey: 'bots', appTitle: 'ConsGPT', appText: 'ConsGPT' },
   { categoryKey: 'bots', appTitle: 'ConsBOT', appText: 'NEW ● ConsBOT' },
   { categoryKey: 'apps', appTitle: 'LexiCons', appText: 'LexiCons' },
 ];
