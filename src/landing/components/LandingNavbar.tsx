@@ -36,7 +36,7 @@ export function LandingNavbar({
               Cons<em className="ml-[4px] italic text-primary">IA</em>
             </h1>
             {/* Separador Vertical */}
-            <span className="hidden h-4 w-px bg-border sm:inline mx-1" />
+            <span className="hidden h-4 w-px bg-foreground/20 sm:inline mx-1" />
             {/* Subtítulo: Ferramentas de IA da Conscienciologia */}
             <span className="hidden font-nunito-sans text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline">
               Ferramentas de IA da Conscienciologia
