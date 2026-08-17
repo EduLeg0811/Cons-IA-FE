@@ -50,10 +50,7 @@ export const CONFIG: AppConfig = loadRuntimeConfig();
 
 const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
 
-// TEMPORÁRIO: enquanto o Main-Server não tem deploy próprio, todas as chamadas
-// vão para o servidor local. O antigo PROD_BASE apontava para o backend Flask
-// desativado (https://cons-ai-server.onrender.com); quando houver URL nova,
-// basta restaurar o fallback de produção aqui.
+const PROD_BASE = 'https://main-server-vvna.onrender.com';
 const LOCAL_BASE = 'http://127.0.0.1:8000';
 
 function resolveApiBaseUrl(): string {
@@ -68,8 +65,8 @@ function resolveApiBaseUrl(): string {
     return '';
   }
 
-  // Build estático ou abertura via file:// — precisa da URL absoluta.
-  return LOCAL_BASE;
+  // Build estático em produção
+  return PROD_BASE;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
