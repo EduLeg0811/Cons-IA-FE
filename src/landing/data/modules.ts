@@ -144,7 +144,7 @@ export const landingCategories: LandingCategory[] = [
         title: 'ConsBOT',
         description: 'Chatbot RAG desenvolvido pela Conscienciologia.',
         icon: GraduationCap,
-        href: 'https://consbot.vercel.app/',
+        href: 'https://consbot-owr0.onrender.com/',
         moduleKey: 'ragbot',
         external: true,
       },
