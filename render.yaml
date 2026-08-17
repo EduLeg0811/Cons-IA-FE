@@ -17,5 +17,4 @@ services:
         value: public, max-age=31536000, immutable
     envVars:
       - key: VITE_API_URL
-        value: https://main-server-vvna.onrender.com
-
+        value: https://main-server-vim3.onrender.com
