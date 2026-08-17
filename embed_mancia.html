@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Embed Bibliomancia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <link rel="stylesheet" href="/styles/style.css">
   <link rel="icon" type="image/png" href="/icon.png">
@@ -44,7 +46,7 @@
       flex: 0 0 auto;
     }
 
-    .embed-header-copy > * {
+    .embed-header-copy>* {
       min-width: 0;
     }
 
@@ -192,6 +194,7 @@
       from {
         transform: rotate(0deg);
       }
+
       to {
         transform: rotate(360deg);
       }
@@ -213,10 +216,12 @@
     }
   </style>
 </head>
+
 <body class="theme-apps">
   <div class="embed-shell">
     <div class="embed-header">
-      <a class="embed-header-icon-link" id="brandLink" href="index.html" target="_top" aria-label="Voltar à página inicial do Cons-IA">
+      <a class="embed-header-icon-link" id="brandLink" href="index.html" target="_top"
+        aria-label="Voltar à página inicial do Cons-IA">
         <div class="embed-header-icon">
           <img src="/icon.png" alt="Cons-IA">
         </div>
@@ -230,7 +235,7 @@
     </div>
 
     <div class="embed-mancia-action">
-     <!--  <div class="embed-mancia-lo-badge" aria-hidden="true">
+      <!--  <div class="embed-mancia-lo-badge" aria-hidden="true">
         <img src="/public/LO.png" alt="">
       </div> -->
       <button id="drawButton" class="embed-mancia-button" type="button">
@@ -244,7 +249,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
-    const apiBase = (params.get('api') || 'https://main-server-vvna.onrender.com').replace(/\/+$/, '');
+    const apiBase = (params.get('api') || 'https://main-server-vim3.onrender.com').replace(/\/+$/, '');
     const title = params.get('title') || 'Bibliomancia';
     const subtitle = params.get('subtitle') || 'Sorteio e análise de ortopensata com IA.';
     const popupPath = params.get('popup') || '/index_mancia.html';
@@ -295,7 +300,7 @@
 
       try {
         popupWindow.focus();
-      } catch {}
+      } catch { }
       return true;
     }
 
@@ -318,4 +323,5 @@
     drawButtonEl.addEventListener('click', drawPensata);
   </script>
 </body>
+
 </html>

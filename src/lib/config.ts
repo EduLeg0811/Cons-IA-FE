@@ -50,7 +50,7 @@ export const CONFIG: AppConfig = loadRuntimeConfig();
 
 const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
 
-const PROD_BASE = 'https://main-server-vvna.onrender.com';
+const PROD_BASE = 'https://main-server-vim3.onrender.com';
 const LOCAL_BASE = 'http://127.0.0.1:8000';
 
 function resolveApiBaseUrl(): string {
@@ -126,7 +126,7 @@ export function logEvent(data: LogEventData): void {
       navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
       return;
     }
-    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => { });
   } catch {
     // ignore logging failures
   }

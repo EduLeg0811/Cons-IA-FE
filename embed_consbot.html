@@ -369,13 +369,13 @@
     };
 
     const params = new URLSearchParams(window.location.search);
-    const apiBase = (params.get('api') || 'https://main-server-vvna.onrender.com').replace(/\/+$/, '');
-    const source = (params.get('source') || 'ALLWV').toUpperCase();
+    const apiBase = (params.get('api') || 'https://main-server-vim3.onrender.com').replace(/\/+$/, '');
+    const source = (params.get('source') || '').toUpperCase();
     const title = params.get('title') || 'ConsBOT';
     const subtitle = params.get('subtitle') || 'Assistente de IA da Conscienciologia.';
     const placeholder = params.get('placeholder') || 'Olá Conscienciólogo!';
     const initialQuestion = params.get('question') || '';
-    const popupPath = params.get('popup') || 'https://consbot.vercel.app/';
+    const popupPath = params.get('popup') || 'consbot.cons-ia.org/';
 
     const queryInputEl = document.getElementById('queryInput');
     const askButtonEl = document.getElementById('askButton');
