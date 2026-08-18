@@ -205,7 +205,7 @@ export function HomePage() {
                 onClick={() => logClick('conslm', 'ConsLM', '#')}
               />
               <ToolCard
-                href="https://consbot.vercel.app/"
+                href="https://consbot.cons-ia.org/"
                 title="ConsBOT"
                 description={<em>NEW ● Chatbot da Conscienciologia</em>}
                 icon={<i className="fa-solid fa-graduation-cap" />}

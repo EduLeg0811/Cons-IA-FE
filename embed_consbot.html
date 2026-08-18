@@ -375,7 +375,10 @@
     const subtitle = params.get('subtitle') || 'Assistente de IA da Conscienciologia.';
     const placeholder = params.get('placeholder') || 'Olá Conscienciólogo!';
     const initialQuestion = params.get('question') || '';
-    const popupPath = params.get('popup') || 'consbot.cons-ia.org/';
+    const targetParam = params.get('target') || params.get('popup') || 'https://consbot.cons-ia.org';
+    const targetBase = targetParam.startsWith('http://') || targetParam.startsWith('https://')
+      ? targetParam
+      : `https://${targetParam}`;
 
     const queryInputEl = document.getElementById('queryInput');
     const askButtonEl = document.getElementById('askButton');
@@ -402,34 +405,19 @@
       return true;
     }
 
-    function openConsbotPopup(query) {
-      const popupUrl = new URL(popupPath, window.location.href);
-      popupUrl.searchParams.set('question', query);
-
-      const popupWidth = Math.min(Math.max(window.screen?.availWidth ? Math.round(window.screen.availWidth * 0.78) : 1100, 960), 1440);
-      const popupHeight = Math.min(Math.max(window.screen?.availHeight ? Math.round(window.screen.availHeight * 0.84) : 820, 720), 1200);
-      const popupLeft = Math.max(0, Math.round(((window.screen?.availWidth || popupWidth) - popupWidth) / 2));
-      const popupTop = Math.max(0, Math.round(((window.screen?.availHeight || popupHeight) - popupHeight) / 2));
-      const popupFeatures = [
-        'popup=yes',
-        'noopener=yes',
-        'noreferrer=yes',
-        `width=${popupWidth}`,
-        `height=${popupHeight}`,
-        `left=${popupLeft}`,
-        `top=${popupTop}`,
-        'resizable=yes',
-        'scrollbars=yes'
-      ].join(',');
-
-      const popupWindow = window.open(popupUrl.toString(), 'consbotPopup', popupFeatures);
-      if (!popupWindow) {
-        return openInNewTabSilently(popupUrl.toString());
-      }
-
+    function openConsbot(query) {
+      let targetUrl;
       try {
-        popupWindow.focus();
-      } catch { }
+        targetUrl = new URL(targetBase);
+      } catch {
+        targetUrl = new URL('https://consbot.cons-ia.org');
+      }
+      targetUrl.searchParams.set('question', query);
+
+      const opened = window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
+      if (!opened) {
+        openInNewTabSilently(targetUrl.toString());
+      }
       return true;
     }
 
@@ -462,7 +450,7 @@
       setStatus('Abrindo o ConsBOT...');
 
       try {
-        openConsbotPopup(query);
+        openConsbot(query);
         setStatus('ConsBOT aberto.');
       } catch (error) {
         setStatus('');
