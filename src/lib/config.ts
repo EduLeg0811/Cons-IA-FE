@@ -109,6 +109,9 @@ export function logEvent(data: LogEventData): void {
   try {
     const url = `${API_BASE_URL}/api/logs`;
     const enriched = {
+      // Identifica o frontend de origem: um clique no card do LexiCons feito na
+      // landing do Cons-IA tem module='lexicons' mas app='cons-ia'.
+      app: 'cons-ia',
       event: trim(data.event, 'feature_access'),
       category: trim(data.category),
       module: trim(data.module),
