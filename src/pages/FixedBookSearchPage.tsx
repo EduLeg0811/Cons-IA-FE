@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { ResultsPanel } from '../components/ResultsPanel';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
+import { ConversationalPrompt } from '../components/ConversationalPrompt';
 import { callLexical, downloadFile, type DownloadPayload } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
+import { isConversationalQuery } from '../lib/queryIntent';
 
 interface FixedBookSearchPageProps {
   navTitle: string;
@@ -20,7 +22,7 @@ interface ModuleSettings {
   maxResults: number;
 }
 
-type Stage = 'idle' | 'searching' | 'done' | 'error';
+type Stage = 'idle' | 'searching' | 'done' | 'error' | 'conversational_prompt';
 
 function loadSettings(storageKey: string): ModuleSettings {
   const defaults: ModuleSettings = { maxResults: 10 };
@@ -69,12 +71,18 @@ export function FixedBookSearchPage({
     return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, [panelOpen]);
 
-  const search = useCallback(async () => {
+  const search = useCallback(async (forceLiteral = false) => {
     if (busyRef.current) return;
     const trimmed = term.trim();
     if (!trimmed) {
       setStage('error');
       setErrorMessage('Please enter a search term');
+      return;
+    }
+
+    if (!forceLiteral && isConversationalQuery(trimmed)) {
+      setStage('conversational_prompt');
+      setErrorMessage('');
       return;
     }
 
@@ -231,7 +239,7 @@ export function FixedBookSearchPage({
             />
             <button
               type="button"
-              onClick={search}
+              onClick={() => search()}
               disabled={stage === 'searching'}
               aria-label="Search"
               className="flex h-12 w-12 items-center justify-center rounded-lg border border-search-primary bg-search-primary text-white transition-colors hover:bg-search-secondary disabled:cursor-not-allowed disabled:opacity-70"
@@ -242,9 +250,15 @@ export function FixedBookSearchPage({
         </div>
 
         <div className="mt-4">
+          {stage === 'conversational_prompt' && (
+            <ConversationalPrompt
+              term={term.trim()}
+              onContinueLiteral={() => search(true)}
+            />
+          )}
           {stage === 'searching' && <LoadingIndicator message="Busca Léxica" />}
           {stage === 'error' && <ErrorMessage message={errorMessage} />}
-          {stage === 'done' && <ResultsPanel sortedData={sortedResults} groupResults={false} accent="search" />}
+          {stage === 'done' && <ResultsPanel sortedData={sortedResults} groupResults={false} accent="search" highlightTerm={term} />}
         </div>
       </div>
     </>

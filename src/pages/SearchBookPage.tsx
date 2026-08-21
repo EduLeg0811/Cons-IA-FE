@@ -3,9 +3,11 @@ import { Navbar } from '../components/Navbar';
 import { BookPills } from '../components/BookPills';
 import { ResultsPanel } from '../components/ResultsPanel';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
+import { ConversationalPrompt } from '../components/ConversationalPrompt';
 import { callLexical, downloadFile, type DownloadPayload } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
+import { isConversationalQuery } from '../lib/queryIntent';
 
 const BOOK_OPTIONS = [
   { value: 'LO', label: 'Léxico de Ortopensatas' },
@@ -55,7 +57,7 @@ function shouldOpenSettingsPanel(): boolean {
   }
 }
 
-type Stage = 'idle' | 'searching' | 'done' | 'error';
+type Stage = 'idle' | 'searching' | 'done' | 'error' | 'conversational_prompt';
 
 export function SearchBookPage() {
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings());
@@ -111,7 +113,7 @@ export function SearchBookPage() {
     .map((book) => BOOK_OPTIONS.find((option) => option.value === book))
     .filter((option): option is (typeof BOOK_OPTIONS)[number] => Boolean(option));
 
-  const search = useCallback(async () => {
+  const search = useCallback(async (forceLiteral = false) => {
     if (busyRef.current) return;
     const trimmed = term.trim();
     if (!trimmed) {
@@ -122,6 +124,12 @@ export function SearchBookPage() {
     if (settings.books.length === 0) {
       setStage('error');
       setErrorMessage('Selecione pelo menos um livro.');
+      return;
+    }
+
+    if (!forceLiteral && isConversationalQuery(trimmed)) {
+      setStage('conversational_prompt');
+      setErrorMessage('');
       return;
     }
 
@@ -255,7 +263,7 @@ export function SearchBookPage() {
             />
             <button
               type="button"
-              onClick={search}
+              onClick={() => search()}
               disabled={stage === 'searching'}
               aria-label="Search"
               className="flex h-12 w-12 items-center justify-center rounded-lg border border-search-primary bg-search-primary text-white transition-colors hover:bg-search-secondary disabled:cursor-not-allowed disabled:opacity-70"
@@ -327,6 +335,12 @@ export function SearchBookPage() {
         </div>
 
         <div className="mt-4">
+          {stage === 'conversational_prompt' && (
+            <ConversationalPrompt
+              term={term.trim()}
+              onContinueLiteral={() => search(true)}
+            />
+          )}
           {stage === 'searching' && <LoadingIndicator message="Busca Léxica" />}
           {stage === 'error' && <ErrorMessage message={errorMessage} />}
           {stage === 'done' && <ResultsPanel sortedData={sortedResults} groupResults={settings.groupResults} accent="search" highlightTerm={term} />}
