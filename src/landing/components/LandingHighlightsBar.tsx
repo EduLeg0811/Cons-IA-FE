@@ -20,8 +20,8 @@ const HIGHLIGHTED_APPS: HighlightedAppSelection[] = [
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Livros', appText: 'Bibliografia de Livros' },
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Verbetes', appText: 'Bibliografia de Verbetes' },
   //{ categoryKey: 'bots', appTitle: 'ConsGPT', appText: 'ConsGPT' },
-  { categoryKey: 'bots', appTitle: 'ConsBOT', appText: 'NEW ● ConsBOT' },
-  { categoryKey: 'apps', appTitle: 'LexiCons', appText: 'LexiCons' },
+  { categoryKey: 'bots', appTitle: 'ConsBOT', appText: 'ChatGPT ● ConsBOT' },
+  { categoryKey: 'apps', appTitle: 'LexiCons', appText: 'Dicionários ● LexiCons' },
 ];
 
 const highlightedApps = HIGHLIGHTED_APPS.flatMap((selection) => {
