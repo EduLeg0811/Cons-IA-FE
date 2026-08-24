@@ -6,7 +6,7 @@ type HighlightedAppSelection = {
   appText: string;
 };
 
-// ==========================================================================
+// ==========================================================================--
 // DESTAQUES DA PÁGINA INICIAL
 // Para trocar os apps exibidos na barra "Destaques • Acesso Rápido",
 // altere SOMENTE a lista abaixo. Use em `categoryKey` e `appTitle` o `key`
