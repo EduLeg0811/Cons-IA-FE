@@ -204,10 +204,10 @@ export function LandingPage() {
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-4 text-3xl leading-[1.2] font-extrabold tracking-tight text-foreground sm:mb-6 sm:text-5xl md:text-7xl"
+          className="mb-4 text-2xl leading-[1.2] font-extrabold tracking-tight text-foreground sm:mb-6 sm:text-4xl md:text-6xl"
         >
           <span className="inline-flex flex-col items-stretch">
-            <span className="mb-3 text-xl sm:mb-5 sm:text-3xl md:text-4xl">Olá Conscienciólogo!</span>
+            <span className="mb-3 text-xl sm:mb-5 sm:text-2xl md:text-3xl">Olá Conscienciólogo!</span>
             <span>O que você quer</span>
             <span className="relative left-[-1.5ch] inline-flex items-baseline justify-end whitespace-nowrap">
               <RotatingWord />
@@ -220,10 +220,11 @@ export function LandingPage() {
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mx-auto mb-5 max-w-lg text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-lg"
+          className="mx-auto mb-5 max-w-lg text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-base"
         >
-          Explore <strong className="font-extrabold text-primary">{totalModules - 4}</strong> ferramentas de IA para estudo e
-          pesquisa da Conscienciologia.
+          Explore <strong className="font-extrabold text-primary">{totalModules - 4}</strong> ferramentas de IA
+          <br />
+          para estudo e pesquisa da Conscienciologia.
         </motion.p>
 
         <LandingBibliomanciaCard />
