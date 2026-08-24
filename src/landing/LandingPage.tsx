@@ -204,7 +204,7 @@ export function LandingPage() {
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-4 text-2xl leading-[1.2] font-extrabold tracking-tight text-foreground sm:mb-6 sm:text-4xl md:text-6xl"
+          className="mb-4 text-3xl leading-[1.2] font-extrabold tracking-tight text-foreground sm:mb-6 sm:text-4xl md:text-6xl"
         >
           <span className="inline-flex flex-col items-stretch">
             <span className="mb-3 text-xl sm:mb-5 sm:text-2xl md:text-3xl">Olá Conscienciólogo!</span>
