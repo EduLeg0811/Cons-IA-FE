@@ -441,7 +441,9 @@
       const query = queryInputEl.value.trim();
       if (!query) {
         setStatus('Digite uma pergunta antes de consultar.');
-        queryInputEl.focus();
+        if (window.innerWidth >= 768) {
+          queryInputEl.focus();
+        }
         return;
       }
 

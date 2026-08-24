@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { TitleBox } from '../components/TitleBox';
 import { SimpleCard } from '../components/PensataCard';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { callInsertRefVerbete } from '../lib/api';
 import { logFeatureAccess } from '../lib/config';
+import { getQueryParam } from '../lib/urlParams';
 
 type Stage = 'idle' | 'running' | 'done' | 'error' | 'empty';
 
@@ -14,20 +15,31 @@ function extractApiError(error: unknown): string {
   return match ? match[1] : fallback;
 }
 
+function getInitialVerbetes(): string {
+  return getQueryParam(['verbetes', 'verbete', 'q', 'query', 'termo', 'term', 'title', 'titles']) || '';
+}
+
+function getInitialStyle(): 'simples' | 'bee' {
+  const s = (getQueryParam(['style', 'estilo']) || '').toLowerCase();
+  return s === 'bee' ? 'bee' : 'simples';
+}
+
 export function BiblioVerbetePage() {
-  const [verbetes, setVerbetes] = useState('');
-  const [style, setStyle] = useState<'simples' | 'bee'>('simples');
+  const [verbetes, setVerbetes] = useState(() => getInitialVerbetes());
+  const [style, setStyle] = useState<'simples' | 'bee'>(() => getInitialStyle());
   const [stage, setStage] = useState<Stage>('idle');
   const [refList, setRefList] = useState('');
   const [refBiblio, setRefBiblio] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const busyRef = useRef(false);
+  const autoRunRef = useRef(false);
 
   const canRun = verbetes.trim().length > 0;
 
-  const run = async () => {
+  const run = useCallback(async (overrideVerbetes?: string) => {
     if (busyRef.current) return;
-    const trimmed = verbetes.trim();
+    const target = overrideVerbetes !== undefined ? overrideVerbetes : verbetes;
+    const trimmed = target.trim();
     if (!trimmed) {
       setStage('error');
       setErrorMessage('Informe ao menos um verbete.');
@@ -67,7 +79,15 @@ export function BiblioVerbetePage() {
     } finally {
       busyRef.current = false;
     }
-  };
+  }, [verbetes, style]);
+
+  useEffect(() => {
+    const initial = getInitialVerbetes();
+    if (initial && !autoRunRef.current) {
+      autoRunRef.current = true;
+      run(initial);
+    }
+  }, [run]);
 
   return (
     <>

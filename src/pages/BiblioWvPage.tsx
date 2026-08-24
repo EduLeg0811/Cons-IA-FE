@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { SimpleCard } from '../components/PensataCard';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { callBiblioWvBuild } from '../lib/api';
 import { logFeatureAccess } from '../lib/config';
+import { getQueryParam } from '../lib/urlParams';
 
 interface BookOption {
   sigla: string;
@@ -39,17 +40,28 @@ function mountBibliographyText(bibliografia: string): string {
   return `${biblio}.`;
 }
 
+function getInitialSigla(): string {
+  const s = (getQueryParam(['sigla', 'book', 'books', 'q']) || '').toUpperCase();
+  return BOOK_OPTIONS.some((b) => b.sigla === s) ? s : '';
+}
+
+function getInitialStyle(): 'simples' | 'bee' {
+  const s = (getQueryParam(['style', 'estilo']) || '').toLowerCase();
+  return s === 'simples' ? 'simples' : 'bee';
+}
+
 type Stage = 'idle' | 'mounting' | 'done' | 'error';
 
 export function BiblioWvPage() {
-  const [selectedSigla, setSelectedSigla] = useState('');
-  const [style, setStyle] = useState<'simples' | 'bee'>('bee');
+  const [selectedSigla, setSelectedSigla] = useState(() => getInitialSigla());
+  const [style, setStyle] = useState<'simples' | 'bee'>(() => getInitialStyle());
   const [stage, setStage] = useState<Stage>('idle');
   const [resultText, setResultText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const busyRef = useRef(false);
+  const autoMountedRef = useRef(false);
 
-  const mount = async (book: BookOption, bibliographyStyle: 'simples' | 'bee' = style) => {
+  const mount = useCallback(async (book: BookOption, bibliographyStyle: 'simples' | 'bee' = style) => {
     if (busyRef.current) return;
 
     busyRef.current = true;
@@ -86,7 +98,18 @@ export function BiblioWvPage() {
     } finally {
       busyRef.current = false;
     }
-  };
+  }, [style]);
+
+  useEffect(() => {
+    const initialSigla = getInitialSigla();
+    if (initialSigla && !autoMountedRef.current) {
+      autoMountedRef.current = true;
+      const initialBook = BOOK_OPTIONS.find((b) => b.sigla === initialSigla);
+      if (initialBook) {
+        mount(initialBook, style);
+      }
+    }
+  }, [mount, style]);
 
   const handleStyleChange = (nextStyle: 'simples' | 'bee') => {
     if (busyRef.current) return;

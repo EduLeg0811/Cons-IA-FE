@@ -7,6 +7,7 @@ import { callLexical, downloadFile, type DownloadPayload } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
+import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
 
 interface FixedBookSearchPageProps {
   navTitle: string;
@@ -26,14 +27,23 @@ type Stage = 'idle' | 'searching' | 'done' | 'error' | 'conversational_prompt';
 
 function loadSettings(storageKey: string): ModuleSettings {
   const defaults: ModuleSettings = { maxResults: 10 };
+  let current = defaults;
   try {
     const raw = localStorage.getItem(storageKey);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-    return { maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      current = { maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults };
+    }
   } catch {
-    return defaults;
+    current = defaults;
   }
+
+  const maxResultsParam = getQueryParam(['limit', 'maxResults', 'max_results']);
+  const maxResults = maxResultsParam && !Number.isNaN(Number(maxResultsParam))
+    ? Math.max(1, Number(maxResultsParam))
+    : current.maxResults;
+
+  return { maxResults };
 }
 
 export function FixedBookSearchPage({
@@ -46,15 +56,21 @@ export function FixedBookSearchPage({
   placeholder,
 }: FixedBookSearchPageProps) {
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
+  const settingsRef = useRef(settings);
   const [panelOpen, setPanelOpen] = useState(false);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(() => getInitialSearchQuery());
   const [stage, setStage] = useState<Stage>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [sortedResults, setSortedResults] = useState<Record<string, FlattenedItem[]>>({});
   const [downloadPayload, setDownloadPayload] = useState<DownloadPayload | null>(null);
   const [downloading, setDownloading] = useState(false);
   const busyRef = useRef(false);
+  const autoSearchTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
 
   const updateSettings = useCallback((next: ModuleSettings) => {
     setSettings(next);
@@ -71,9 +87,10 @@ export function FixedBookSearchPage({
     return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, [panelOpen]);
 
-  const search = useCallback(async (forceLiteral = false) => {
+  const search = useCallback(async (forceLiteral = false, overrideTerm?: string) => {
     if (busyRef.current) return;
-    const trimmed = term.trim();
+    const targetTerm = overrideTerm !== undefined ? overrideTerm : term;
+    const trimmed = targetTerm.trim();
     if (!trimmed) {
       setStage('error');
       setErrorMessage('Please enter a search term');
@@ -92,17 +109,18 @@ export function FixedBookSearchPage({
     setSortedResults({});
     setDownloadPayload(null);
 
+    const currentSettings = settingsRef.current;
     try {
       const respLexical = await callLexical({
         term: trimmed,
         source: [fixedBook],
-        maxResults: settings.maxResults,
+        maxResults: currentSettings.maxResults,
         flag_grouping: false,
         fullBadges: CONFIG.FULL_BADGES,
       });
 
       const results = Array.isArray(respLexical.results)
-        ? limitResultsPerSource(respLexical.results as Array<{ source?: string }>, settings.maxResults)
+        ? limitResultsPerSource(respLexical.results as Array<{ source?: string }>, currentSettings.maxResults)
         : [];
 
       const flattened = flattenDataEntries(results as any);
@@ -145,7 +163,7 @@ export function FixedBookSearchPage({
           action: 'search',
           label: `Busca em ${fixedBookLabel}`,
           value: trimmed,
-          meta: { sources: [fixedBook], results_count: unique.length, max_results: settings.maxResults },
+          meta: { sources: [fixedBook], results_count: unique.length, max_results: currentSettings.maxResults },
         });
       } catch {
         // ignore logging errors
@@ -157,7 +175,15 @@ export function FixedBookSearchPage({
     } finally {
       busyRef.current = false;
     }
-  }, [term, settings, fixedBook, moduleKey, fixedBookLabel]);
+  }, [term, fixedBook, moduleKey, fixedBookLabel]);
+
+  useEffect(() => {
+    const initialQuery = getInitialSearchQuery();
+    if (initialQuery && !autoSearchTriggeredRef.current) {
+      autoSearchTriggeredRef.current = true;
+      search(false, initialQuery);
+    }
+  }, [search]);
 
   const handleDownload = async () => {
     if (!downloadPayload || downloading) return;

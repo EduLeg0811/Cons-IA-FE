@@ -75,7 +75,7 @@ export function HomePage() {
       <main className="min-h-[calc(100vh-4rem)] bg-gray-100 px-4 py-7 sm:px-6 sm:py-12 dark:bg-gray-950">
         <div className="mx-auto max-w-[1400px]">
           <div className="mb-6 flex flex-col items-center gap-2 pt-2 text-center sm:mb-8 sm:gap-3 sm:pt-4">
-            <h2 className="font-display text-3xl font-normal leading-[1.02] text-foreground sm:text-5xl sm:leading-[1.05]">
+            <h2 className="font-display text-2xl font-normal leading-[1.05] text-foreground sm:text-5xl sm:leading-[1.05]">
               Inteligência Artificial
               <br />
               <span className="italic text-primary/80">a serviço da Consciência</span>

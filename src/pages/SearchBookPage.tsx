@@ -8,6 +8,7 @@ import { callLexical, downloadFile, type DownloadPayload } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
+import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
 
 const BOOK_OPTIONS = [
   { value: 'LO', label: 'Léxico de Ortopensatas' },
@@ -33,23 +34,56 @@ interface ModuleSettings {
   groupResults: boolean;
 }
 
+function getInitialBooks(defaultBooks: string[]): string[] {
+  const raw = getQueryParam(['books', 'source', 'sources', 'livros']);
+  if (!raw) return defaultBooks;
+  const validValues = new Set(BOOK_OPTIONS.map((o) => o.value));
+  const parsed = raw
+    .split(',')
+    .map((s) => s.trim().toUpperCase())
+    .filter((s) => validValues.has(s));
+  return parsed.length > 0 ? parsed.slice(0, MAX_SELECTED_BOOKS) : defaultBooks;
+}
+
 function loadSettings(): ModuleSettings {
   const defaults: ModuleSettings = { books: ['LO', 'DAC'], maxResults: 10, groupResults: true };
+  let current = defaults;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-    return {
-      books: Array.isArray(parsed.books) ? parsed.books : defaults.books,
-      maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults,
-      groupResults: typeof parsed.groupResults === 'boolean' ? parsed.groupResults : defaults.groupResults,
-    };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      current = {
+        books: Array.isArray(parsed.books) ? parsed.books : defaults.books,
+        maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults,
+        groupResults: typeof parsed.groupResults === 'boolean' ? parsed.groupResults : defaults.groupResults,
+      };
+    }
   } catch {
-    return defaults;
+    current = defaults;
   }
+
+  const urlBooks = getInitialBooks(current.books);
+  const maxResultsParam = getQueryParam(['limit', 'maxResults', 'max_results']);
+  const maxResults = maxResultsParam && !Number.isNaN(Number(maxResultsParam))
+    ? Math.max(1, Number(maxResultsParam))
+    : current.maxResults;
+
+  const groupParam = getQueryParam(['group', 'groupResults', 'group_results']);
+  const groupResults = groupParam !== null
+    ? groupParam !== 'false' && groupParam !== '0'
+    : current.groupResults;
+
+  return {
+    books: urlBooks,
+    maxResults,
+    groupResults,
+  };
 }
 
 function shouldOpenSettingsPanel(): boolean {
+  if (getInitialSearchQuery()) {
+    return false;
+  }
   try {
     return sessionStorage.getItem(PANEL_SEEN_SESSION_KEY) !== 'true';
   } catch {
@@ -64,13 +98,14 @@ export function SearchBookPage() {
   const settingsRef = useRef(settings);
   const [panelOpen, setPanelOpen] = useState(() => shouldOpenSettingsPanel());
   const settingsPanelRef = useRef<HTMLDivElement>(null);
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(() => getInitialSearchQuery());
   const [stage, setStage] = useState<Stage>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [sortedResults, setSortedResults] = useState<Record<string, FlattenedItem[]>>({});
   const [downloadPayload, setDownloadPayload] = useState<DownloadPayload | null>(null);
   const [downloading, setDownloading] = useState(false);
   const busyRef = useRef(false);
+  const autoSearchTriggeredRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -113,15 +148,17 @@ export function SearchBookPage() {
     .map((book) => BOOK_OPTIONS.find((option) => option.value === book))
     .filter((option): option is (typeof BOOK_OPTIONS)[number] => Boolean(option));
 
-  const search = useCallback(async (forceLiteral = false) => {
+  const search = useCallback(async (forceLiteral = false, overrideTerm?: string) => {
     if (busyRef.current) return;
-    const trimmed = term.trim();
+    const targetTerm = overrideTerm !== undefined ? overrideTerm : term;
+    const trimmed = targetTerm.trim();
     if (!trimmed) {
       setStage('error');
       setErrorMessage('Please enter a search term');
       return;
     }
-    if (settings.books.length === 0) {
+    const currentSettings = settingsRef.current;
+    if (currentSettings.books.length === 0) {
       setStage('error');
       setErrorMessage('Selecione pelo menos um livro.');
       return;
@@ -143,18 +180,18 @@ export function SearchBookPage() {
       // Cada livro é consultado separadamente para que `maxResults` seja uma
       // cota individual, sem o limite global do backend favorecer a primeira fonte.
       const responses = await Promise.all(
-        settings.books.map((book) => callLexical({
+        currentSettings.books.map((book) => callLexical({
           term: trimmed,
           source: [book],
-          maxResults: settings.maxResults,
-          flag_grouping: settings.groupResults,
+          maxResults: currentSettings.maxResults,
+          flag_grouping: currentSettings.groupResults,
           fullBadges: CONFIG.FULL_BADGES,
         })),
       );
 
       const results = responses.flatMap((response) => (
         Array.isArray(response.results)
-          ? limitResultsPerSource(response.results as Array<{ source?: string }>, settings.maxResults)
+          ? limitResultsPerSource(response.results as Array<{ source?: string }>, currentSettings.maxResults)
           : []
       ));
 
@@ -179,7 +216,7 @@ export function SearchBookPage() {
         })),
         search_type: 'search_book',
         term: trimmed,
-        group_results_by_book: settings.groupResults,
+        group_results_by_book: currentSettings.groupResults,
       });
 
       try {
@@ -188,7 +225,7 @@ export function SearchBookPage() {
           action: 'search',
           label: 'Busca em livros',
           value: trimmed,
-          meta: { sources: settings.books, source_count: settings.books.length, results_count: unique.length, group_results: settings.groupResults, max_results: settings.maxResults },
+          meta: { sources: currentSettings.books, source_count: currentSettings.books.length, results_count: unique.length, group_results: currentSettings.groupResults, max_results: currentSettings.maxResults },
         });
       } catch {
         // ignore logging errors
@@ -200,7 +237,15 @@ export function SearchBookPage() {
     } finally {
       busyRef.current = false;
     }
-  }, [term, settings]);
+  }, [term]);
+
+  useEffect(() => {
+    const initialQuery = getInitialSearchQuery();
+    if (initialQuery && !autoSearchTriggeredRef.current) {
+      autoSearchTriggeredRef.current = true;
+      search(false, initialQuery);
+    }
+  }, [search]);
 
   const handleDownload = async () => {
     if (!downloadPayload || downloading) return;
