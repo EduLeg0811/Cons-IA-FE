@@ -15,13 +15,14 @@ type HighlightedAppSelection = {
 // e a descrição continuam sendo reutilizados a partir da seção original.
 // ==========================================================================----
 const HIGHLIGHTED_APPS: HighlightedAppSelection[] = [
+  { categoryKey: 'bots', appTitle: 'ConsBOT', appText: 'ChatGPT ● ConsBOT' },
+  { categoryKey: 'apps', appTitle: 'LexiCons', appText: 'Dicionários ● LexiCons' },
   { categoryKey: 'busca', appTitle: 'Livros & Tratados', appText: 'Busca em Livros' },
   { categoryKey: 'busca', appTitle: 'Verbetes', appText: 'Busca em Verbetes' },
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Livros', appText: 'Bibliografia de Livros' },
   { categoryKey: 'biblio', appTitle: 'Bibliografia de Verbetes', appText: 'Bibliografia de Verbetes' },
   //{ categoryKey: 'bots', appTitle: 'ConsGPT', appText: 'ConsGPT' },
-  { categoryKey: 'bots', appTitle: 'ConsBOT', appText: 'ChatGPT ● ConsBOT' },
-  { categoryKey: 'apps', appTitle: 'LexiCons', appText: 'Dicionários ● LexiCons' },
+
 ];
 
 const highlightedApps = HIGHLIGHTED_APPS.flatMap((selection) => {
