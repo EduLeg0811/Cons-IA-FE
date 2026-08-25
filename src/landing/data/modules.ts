@@ -128,7 +128,7 @@ export const landingCategories: LandingCategory[] = [
         title: 'ConsGPT',
         description: 'Assistente ChatGPT especializado em Conscienciologia.',
         icon: MessageSquare,
-        href: 'https://chatgpt.com/g/g-68a5d68b96c4819189dd1e6fb0def83f-consgpt',
+        href: 'https://chatgpt.com/g/g-68a5d68b96c4819189dd1e6fb0def83e-consgpt',
         external: true,
         moduleKey: 'consgpt',
       },
