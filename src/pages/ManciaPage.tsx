@@ -5,10 +5,12 @@ import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { downloadFile, type DownloadPayload } from '../lib/api';
 import { drawBibliomanciaPensata, commentBibliomanciaPensata } from '../lib/bibliomancia';
 import { logFeatureAccess } from '../lib/config';
+import { useContainerWidth } from '../lib/containerWidth';
 
 type Stage = 'idle' | 'drawing' | 'commenting' | 'done' | 'error';
 
 export function ManciaPage() {
+  const { containerClass } = useContainerWidth();
   const [stage, setStage] = useState<Stage>('idle');
   const [pensataText, setPensataText] = useState('');
   const [pensataRef, setPensataRef] = useState('');
@@ -96,6 +98,20 @@ export function ManciaPage() {
     setDownloading(true);
     try {
       await downloadFile('docx', downloadPayload);
+      try {
+        logFeatureAccess({
+          module: 'mancia',
+          action: 'export_docx',
+          label: 'Exportar Word (Bibliomancia)',
+          value: downloadPayload.term,
+          meta: {
+            format: 'docx',
+            results_count: downloadPayload.results.length,
+          },
+        });
+      } catch {
+        // ignore logging errors
+      }
     } catch (error) {
       console.error('Download failed:', error);
       alert(`Download failed: ${(error as Error)?.message ?? 'unknown error'}`);
@@ -108,7 +124,7 @@ export function ManciaPage() {
     <>
       <Navbar title="Bibliomancia" subtitle="Sorteio e Análise de Ortopensata" />
 
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-[90px]">
+      <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div className="mx-auto flex max-w-[600px] flex-col items-center px-6 py-8 text-center">
           <button
             type="button"

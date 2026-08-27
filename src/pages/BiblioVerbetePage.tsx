@@ -6,6 +6,7 @@ import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { callInsertRefVerbete } from '../lib/api';
 import { logFeatureAccess } from '../lib/config';
 import { getQueryParam } from '../lib/urlParams';
+import { useContainerWidth } from '../lib/containerWidth';
 
 type Stage = 'idle' | 'running' | 'done' | 'error' | 'empty';
 
@@ -25,6 +26,7 @@ function getInitialStyle(): 'simples' | 'bee' {
 }
 
 export function BiblioVerbetePage() {
+  const { containerClass } = useContainerWidth();
   const [verbetes, setVerbetes] = useState(() => getInitialVerbetes());
   const [style, setStyle] = useState<'simples' | 'bee'>(() => getInitialStyle());
   const [stage, setStage] = useState<Stage>('idle');
@@ -38,7 +40,7 @@ export function BiblioVerbetePage() {
 
   const run = useCallback(async (overrideVerbetes?: string) => {
     if (busyRef.current) return;
-    const target = overrideVerbetes !== undefined ? overrideVerbetes : verbetes;
+    const target = typeof overrideVerbetes === 'string' ? overrideVerbetes : verbetes;
     const trimmed = target.trim();
     if (!trimmed) {
       setStage('error');
@@ -93,11 +95,11 @@ export function BiblioVerbetePage() {
     <>
       <Navbar title="Bibliografia Verbetes" subtitle="Verbetes da Enciclopédia" />
 
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-[90px]">
+      <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div className="mx-auto flex max-w-[600px] flex-col items-center px-6 py-8 text-center">
           <button
             type="button"
-            onClick={run}
+            onClick={() => run()}
             disabled={stage === 'running' || !canRun}
             className="mx-auto inline-flex items-center gap-3 rounded-xl bg-biblio-primary px-8 py-5 text-lg font-semibold text-white shadow transition-all hover:-translate-y-0.5 hover:bg-biblio-secondary disabled:cursor-not-allowed disabled:opacity-70"
           >

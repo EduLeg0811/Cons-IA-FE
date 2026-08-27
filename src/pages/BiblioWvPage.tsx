@@ -5,6 +5,7 @@ import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { callBiblioWvBuild } from '../lib/api';
 import { logFeatureAccess } from '../lib/config';
 import { getQueryParam } from '../lib/urlParams';
+import { useContainerWidth } from '../lib/containerWidth';
 
 interface BookOption {
   sigla: string;
@@ -53,6 +54,7 @@ function getInitialStyle(): 'simples' | 'bee' {
 type Stage = 'idle' | 'mounting' | 'done' | 'error';
 
 export function BiblioWvPage() {
+  const { containerClass } = useContainerWidth();
   const [selectedSigla, setSelectedSigla] = useState(() => getInitialSigla());
   const [style, setStyle] = useState<'simples' | 'bee'>(() => getInitialStyle());
   const [stage, setStage] = useState<Stage>('idle');
@@ -123,7 +125,7 @@ export function BiblioWvPage() {
     <>
       <Navbar title="Bibliografia Livros" subtitle="Obras Waldo Vieira" />
 
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-[90px]">
+      <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         {!selectedSigla && (
           <div className="mx-auto max-w-[600px] px-6 pb-5 text-center">
             <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">

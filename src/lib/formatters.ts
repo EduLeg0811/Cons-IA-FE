@@ -71,13 +71,18 @@ export function flattenDataEntries(data: RawResultItem[]): FlattenedItem[] {
     const rawText = item.page_content || item.text || '';
     const mkText = (metadata as any).markdown || item.markdown || item.text || '';
 
+    const rawTitle = getField('title');
+    const cleanTitle = (rawTitle === null || rawTitle === undefined || String(rawTitle).trim().toLowerCase() === 'none')
+      ? ''
+      : String(rawTitle).trim();
+
     return {
       source: getField('source') ?? '',
       score,
       paragraph_number: getField('number') || getField('paragraph_number'),
       raw_text: rawText,
       mk_text: mkText,
-      title: getField('title') ?? '',
+      title: cleanTitle,
       argument: getField('argumento') || getField('argument') || '',
       section: getField('section') ?? '',
       folha: getField('folha') ?? '',

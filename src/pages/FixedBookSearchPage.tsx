@@ -8,6 +8,7 @@ import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
 import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
+import { useContainerWidth } from '../lib/containerWidth';
 
 interface FixedBookSearchPageProps {
   navTitle: string;
@@ -55,6 +56,7 @@ export function FixedBookSearchPage({
   fixedBookLabel,
   placeholder,
 }: FixedBookSearchPageProps) {
+  const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
   const settingsRef = useRef(settings);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -89,7 +91,7 @@ export function FixedBookSearchPage({
 
   const search = useCallback(async (forceLiteral = false, overrideTerm?: string) => {
     if (busyRef.current) return;
-    const targetTerm = overrideTerm !== undefined ? overrideTerm : term;
+    const targetTerm = typeof overrideTerm === 'string' ? overrideTerm : term;
     const trimmed = targetTerm.trim();
     if (!trimmed) {
       setStage('error');
@@ -131,28 +133,31 @@ export function FixedBookSearchPage({
       setStage('done');
 
       setDownloadPayload({
-        results: unique.map((item, idx) => ({
-          text: item.mk_text || item.raw_text,
-          source: item.source,
-          type: moduleKey,
-          metadata: {
-            title: item.title,
-            number: item.paragraph_number,
-            pagina: item.pagina,
-            area: item.area,
-            theme: item.theme,
-            author: item.author,
-            date: item.date,
-            section: item.section,
-            folha: item.folha,
-            argument: item.argument,
-            link: item.link,
-            sigla: item.sigla,
-            citation: item.citation,
-            content: item.mk_text || item.raw_text,
-            order: idx,
-          },
-        })),
+        results: unique.map((item, idx) => {
+          const title = item.title && item.title.toLowerCase() !== 'none' ? item.title.trim() : '';
+          return {
+            text: item.mk_text || item.raw_text,
+            source: item.source,
+            type: moduleKey,
+            metadata: {
+              ...(title ? { title } : {}),
+              number: item.paragraph_number,
+              pagina: item.pagina,
+              area: item.area,
+              theme: item.theme,
+              author: item.author,
+              date: item.date,
+              section: item.section,
+              folha: item.folha,
+              argument: item.argument,
+              link: item.link,
+              sigla: item.sigla,
+              citation: item.citation,
+              content: item.mk_text || item.raw_text,
+              order: idx,
+            },
+          };
+        }),
         search_type: moduleKey,
         term: trimmed,
       });
@@ -190,6 +195,22 @@ export function FixedBookSearchPage({
     setDownloading(true);
     try {
       await downloadFile('docx', downloadPayload);
+      try {
+        logFeatureAccess({
+          module: moduleKey,
+          action: 'export_docx',
+          label: `Exportar Word (${fixedBookLabel})`,
+          value: downloadPayload.term,
+          meta: {
+            format: 'docx',
+            source: fixedBook,
+            results_count: downloadPayload.results.length,
+            term: downloadPayload.term,
+          },
+        });
+      } catch {
+        // ignore logging errors
+      }
     } catch (error) {
       alert(`Download failed: ${(error as Error)?.message ?? 'unknown error'}`);
     } finally {
@@ -201,7 +222,7 @@ export function FixedBookSearchPage({
     <>
       <Navbar title={navTitle} subtitle={navSubtitle} />
 
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-[90px]">
+      <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div className="relative">
           <div ref={settingsPanelRef}>
           <div className="mb-3 flex items-center justify-between gap-2">

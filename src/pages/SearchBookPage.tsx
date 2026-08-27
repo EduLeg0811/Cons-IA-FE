@@ -9,6 +9,7 @@ import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
 import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
+import { useContainerWidth } from '../lib/containerWidth';
 
 const BOOK_OPTIONS = [
   { value: 'LO', label: 'Léxico de Ortopensatas' },
@@ -94,6 +95,7 @@ function shouldOpenSettingsPanel(): boolean {
 type Stage = 'idle' | 'searching' | 'done' | 'error' | 'conversational_prompt';
 
 export function SearchBookPage() {
+  const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings());
   const settingsRef = useRef(settings);
   const [panelOpen, setPanelOpen] = useState(() => shouldOpenSettingsPanel());
@@ -150,7 +152,7 @@ export function SearchBookPage() {
 
   const search = useCallback(async (forceLiteral = false, overrideTerm?: string) => {
     if (busyRef.current) return;
-    const targetTerm = overrideTerm !== undefined ? overrideTerm : term;
+    const targetTerm = typeof overrideTerm === 'string' ? overrideTerm : term;
     const trimmed = targetTerm.trim();
     if (!trimmed) {
       setStage('error');
@@ -203,17 +205,21 @@ export function SearchBookPage() {
       setStage('done');
 
       setDownloadPayload({
-        results: unique.map((item, idx) => ({
-          text: item.mk_text || item.raw_text,
-          source: item.source,
-          type: 'search_book',
-          metadata: {
-            title: item.title,
-            pagina: item.pagina,
-            content: item.mk_text || item.raw_text,
-            order: idx,
-          },
-        })),
+        results: unique.map((item, idx) => {
+          const isLO = item.source === 'LO' || item.source === 'LO1' || item.source === 'LO2' || item.source === 'Léxico de Ortopensatas';
+          const title = isLO ? '' : (item.title && item.title.toLowerCase() !== 'none' ? item.title.trim() : '');
+          return {
+            text: item.mk_text || item.raw_text,
+            source: item.source,
+            type: 'search_book',
+            metadata: {
+              ...(title ? { title } : {}),
+              pagina: item.pagina,
+              content: item.mk_text || item.raw_text,
+              order: idx,
+            },
+          };
+        }),
         search_type: 'search_book',
         term: trimmed,
         group_results_by_book: currentSettings.groupResults,
@@ -252,6 +258,22 @@ export function SearchBookPage() {
     setDownloading(true);
     try {
       await downloadFile('docx', downloadPayload);
+      try {
+        logFeatureAccess({
+          module: 'search_book',
+          action: 'export_docx',
+          label: 'Exportar Word (Busca em livros)',
+          value: downloadPayload.term,
+          meta: {
+            format: 'docx',
+            results_count: downloadPayload.results.length,
+            term: downloadPayload.term,
+            group_results: downloadPayload.group_results_by_book,
+          },
+        });
+      } catch {
+        // ignore logging errors
+      }
     } catch (error) {
       alert(`Download failed: ${(error as Error)?.message ?? 'unknown error'}`);
     } finally {
@@ -263,7 +285,7 @@ export function SearchBookPage() {
     <>
       <Navbar title="Livros & Tratados" subtitle="Busca Léxica" />
 
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-[90px]">
+      <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div>
           <div ref={settingsPanelRef}>
           <div className="mb-3 flex items-center justify-between gap-2">
