@@ -29,11 +29,11 @@ export function SimpleCard({ text, reference }: SimpleCardProps) {
     <div className="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="p-5">
         <div
-          className="markdown-content text-gray-800 dark:text-gray-100"
+          className="markdown-content text-sm leading-relaxed text-gray-800 dark:text-gray-100"
           dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }}
         />
         {reference ? (
-          <div className="mt-1 text-right text-sm italic text-gray-500 dark:text-gray-400">{reference}</div>
+          <div className="mt-1 text-right text-xs italic text-gray-500 dark:text-gray-400">{reference}</div>
         ) : null}
       </div>
     </div>
