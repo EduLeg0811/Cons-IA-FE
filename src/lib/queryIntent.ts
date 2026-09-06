@@ -185,13 +185,8 @@ export function isConversationalQuery(rawText: string): boolean {
     }
   }
 
-  // 3. Quantidade de palavras elevada para uma busca léxica tradicional (>= 3 palavras)
-  if (words.length >= 3) {
-    return true;
-  }
-
-  // 4. Frase longa (>= 20 caracteres e 2+ palavras)
-  if (trimmed.length >= 20 && words.length >= 2) {
+  // 3. Frase longa (>= 20 caracteres e 4+ palavras)
+  if (trimmed.length >= 20 && words.length >= 4) {
     return true;
   }
 
