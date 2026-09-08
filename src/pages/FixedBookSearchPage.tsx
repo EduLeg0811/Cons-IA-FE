@@ -3,7 +3,7 @@ import { Navbar } from '../components/Navbar';
 import { ResultsPanel } from '../components/ResultsPanel';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { ConversationalPrompt } from '../components/ConversationalPrompt';
-import { callLexical, downloadFile, type DownloadPayload } from '../lib/api';
+import { callLexical, callVerbeteSearch, downloadFile, type DownloadPayload, type VerbeteSearchField } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
@@ -56,6 +56,11 @@ export function FixedBookSearchPage({
   fixedBookLabel,
   placeholder,
 }: FixedBookSearchPageProps) {
+  const requestedField = getQueryParam(['field']);
+  const verbeteField: VerbeteSearchField =
+    requestedField === 'titulo' || requestedField === 'autor' || requestedField === 'especialidade'
+      ? requestedField
+      : 'texto';
   const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
   const settingsRef = useRef(settings);
@@ -113,13 +118,15 @@ export function FixedBookSearchPage({
 
     const currentSettings = settingsRef.current;
     try {
-      const respLexical = await callLexical({
-        term: trimmed,
-        source: [fixedBook],
-        maxResults: currentSettings.maxResults,
-        flag_grouping: false,
-        fullBadges: CONFIG.FULL_BADGES,
-      });
+      const respLexical = fixedBook === 'EC' && verbeteField !== 'texto'
+        ? await callVerbeteSearch(trimmed, verbeteField, currentSettings.maxResults)
+        : await callLexical({
+            term: trimmed,
+            source: [fixedBook],
+            maxResults: currentSettings.maxResults,
+            flag_grouping: false,
+            fullBadges: CONFIG.FULL_BADGES,
+          });
 
       const results = Array.isArray(respLexical.results)
         ? limitResultsPerSource(respLexical.results as Array<{ source?: string }>, currentSettings.maxResults)
@@ -180,7 +187,7 @@ export function FixedBookSearchPage({
     } finally {
       busyRef.current = false;
     }
-  }, [term, fixedBook, moduleKey, fixedBookLabel]);
+  }, [term, fixedBook, moduleKey, fixedBookLabel, verbeteField]);
 
   useEffect(() => {
     const initialQuery = getInitialSearchQuery();

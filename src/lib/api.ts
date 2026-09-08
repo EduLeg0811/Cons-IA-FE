@@ -33,6 +33,33 @@ export async function callLexical(params: LexicalSearchParams): Promise<LexicalS
   return response.json();
 }
 
+export type VerbeteSearchField = 'texto' | 'titulo' | 'autor' | 'especialidade';
+export async function callVerbeteSearch(
+  term: string,
+  field: VerbeteSearchField,
+  limit = 10,
+): Promise<LexicalSearchResponse> {
+  const bodyKey = { texto: 'text', titulo: 'title', autor: 'author', especialidade: 'area' }[field];
+  const response = await fetch(`${API_BASE_URL}/api/lexical/verbetes/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [bodyKey]: term, limit }),
+  });
+  if (!response.ok) {
+    const err = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status} ${err}`);
+  }
+  const data = await response.json() as LexicalSearchResponse;
+  return {
+    ...data,
+    results: (data.results ?? []).map((raw) => {
+      const row = raw as Record<string, unknown>;
+      const metadata = (row.data && typeof row.data === 'object' ? row.data : row.metadata) as Record<string, unknown> | undefined;
+      return { ...row, source: row.source ?? 'EC', metadata: metadata ?? {}, text: row.text ?? row.page_content ?? '' };
+    }),
+  };
+}
+
 export interface RandomPensataParams {
   term: string;
   book: string;

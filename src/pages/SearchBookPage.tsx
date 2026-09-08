@@ -11,19 +11,30 @@ import { isConversationalQuery } from '../lib/queryIntent';
 import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
 import { useContainerWidth } from '../lib/containerWidth';
 
-const BOOK_OPTIONS = [
+export const BOOK_OPTIONS = [
   { value: 'LO', label: 'Léxico de Ortopensatas' },
   { value: 'DAC', label: 'Dicionário de Argumentos da Conscienciologia' },
   { value: 'TNP', label: 'Manual da Tenepes' },
-  { value: 'DUPLA', label: 'Manual da Dupla Evolutiva' },
-  { value: 'PROEXIS', label: 'Manual da Proéxis' },
-  { value: '700EXP', label: '700 Experimentos' },
-  { value: '200TEAT', label: '200 Teáticas da Conscienciologia' },
-  { value: 'TEMAS', label: 'Temas da Conscienciologia' },
+  { value: 'MDE', label: 'Manual da Dupla Evolutiva' },
+  { value: 'MP', label: 'Manual da Proéxis' },
+  { value: 'EXP', label: '700 Experimentos' },
+  { value: 'TEAT', label: '200 Teáticas da Conscienciologia' },
+  { value: 'TC', label: 'Temas da Conscienciologia' },
   { value: 'HSR', label: 'Homo sapiens reurbanisatus' },
   { value: 'HSP', label: 'Homo sapiens pacificus' },
   { value: 'PROJ', label: 'Projeciologia' },
+  { value: 'MINI_ARLINDO', label: 'Minitertúlia — Arlindo' },
+  { value: 'PROJ1986', label: 'Projeciologia (1986)' },
+  { value: 'QUEST', label: 'Questões Mini' },
+  { value: 'ZEFIRO', label: 'Zéfiro' },
 ];
+const LEGACY_BOOK_CODES: Record<string, string> = {
+  '700EXP': 'EXP', DUPLA: 'MDE', PROEXIS: 'MP', TEMAS: 'TC', '200TEAT': 'TEAT',
+};
+export function normalizeBookCode(value: string): string {
+  const upper = value.trim().toUpperCase();
+  return LEGACY_BOOK_CODES[upper] ?? upper;
+}
 
 const STORAGE_KEY = 'appConfig_searchBook';
 const PANEL_SEEN_SESSION_KEY = 'searchBookSettingsPanelSeen';
@@ -41,7 +52,7 @@ function getInitialBooks(defaultBooks: string[]): string[] {
   const validValues = new Set(BOOK_OPTIONS.map((o) => o.value));
   const parsed = raw
     .split(',')
-    .map((s) => s.trim().toUpperCase())
+    .map(normalizeBookCode)
     .filter((s) => validValues.has(s));
   return parsed.length > 0 ? parsed.slice(0, MAX_SELECTED_BOOKS) : defaultBooks;
 }
@@ -53,11 +64,18 @@ function loadSettings(): ModuleSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      const migratedBooks = Array.isArray(parsed.books)
+        ? parsed.books.map((value: unknown) => normalizeBookCode(String(value)))
+            .filter((value: string) => BOOK_OPTIONS.some((option) => option.value === value))
+        : defaults.books;
       current = {
-        books: Array.isArray(parsed.books) ? parsed.books : defaults.books,
+        books: migratedBooks,
         maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults,
         groupResults: typeof parsed.groupResults === 'boolean' ? parsed.groupResults : defaults.groupResults,
       };
+      if (JSON.stringify(parsed.books ?? []) !== JSON.stringify(migratedBooks)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, books: migratedBooks }));
+      }
     }
   } catch {
     current = defaults;

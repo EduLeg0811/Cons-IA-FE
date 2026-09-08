@@ -149,7 +149,7 @@ export function HomePage() {
                 onClick={() => logClick('lexicons', 'LexiCons', 'https://lexicons.cons-ia.org/')}
               />
               <ToolCard
-                href="https://notebooklm.google.com/notebook/c3528e65-0c2b-4a80-b3f2-2f22e3626b67?artifactId=8f6fc286-021f-4184-b572-7f17c8561539"
+                href="https://notebooklm.link.google/XL3CIJnbgAZF"
                 title="Quiz Conscienciológico"
                 description={<em>Quiz de Perguntas & Respostas</em>}
                 icon={<i className="fas fa-graduation-cap" />}
@@ -158,7 +158,7 @@ export function HomePage() {
                 onClick={() => logClick('quiz_conscienciologico', 'Quiz Conscienciologico', '#')}
               />
               <ToolCard
-                href="https://notebooklm.google.com/notebook/c3528e65-0c2b-4a80-b3f2-2f22e3626b67?artifactId=2da2f57f-996c-4efd-b24c-c2f49ba8b452"
+                href="https://notebooklm.link.google/onBMbirJF3s3"
                 title="Flashcards de Temas"
                 description={<em>Temas da Conscienciologia em cards</em>}
                 icon={<i className="fas fa-layer-group" />}
@@ -196,7 +196,7 @@ export function HomePage() {
                 onClick={() => logClick('consgpt', 'ConsGPT', '#')}
               />
               <ToolCard
-                href="https://notebooklm.google.com/notebook/c3528e65-0c2b-4a80-b3f2-2f22e3626b67"
+                href="https://notebook.google.com/notebook/c3528e65-0c2b-4a80-b3f2-2f22e3626b67"
                 title="ConsLM"
                 description={<em>NotebookLM da Google</em>}
                 icon={<i className="fa-brands fa-google" />}
