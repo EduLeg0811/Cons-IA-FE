@@ -169,7 +169,7 @@ export function HomePage() {
 
               <ToolCard
                 href="https://notebooklm.link.google/z0TeeClFPRcC"
-                title="Mapa mental das bases da Conscienciologia"
+                title="Mapa mental do paradigma consciencial"
                 description={<em>Mapa mental</em>}
                 icon={<i className="fas fa-brain" />}
                 iconVariant="mancia"
