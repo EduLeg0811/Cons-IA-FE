@@ -36,9 +36,10 @@ export function normalizeBookCode(value: string): string {
   return LEGACY_BOOK_CODES[upper] ?? upper;
 }
 
+export const ALL_BOOK_CODES = BOOK_OPTIONS.map((o) => o.value);
+
 const STORAGE_KEY = 'appConfig_searchBook';
 const PANEL_SEEN_SESSION_KEY = 'searchBookSettingsPanelSeen';
-const MAX_SELECTED_BOOKS = 3;
 
 interface ModuleSettings {
   books: string[];
@@ -54,11 +55,11 @@ function getInitialBooks(defaultBooks: string[]): string[] {
     .split(',')
     .map(normalizeBookCode)
     .filter((s) => validValues.has(s));
-  return parsed.length > 0 ? parsed.slice(0, MAX_SELECTED_BOOKS) : defaultBooks;
+  return parsed.length > 0 ? parsed : defaultBooks;
 }
 
 function loadSettings(): ModuleSettings {
-  const defaults: ModuleSettings = { books: ['LO', 'DAC'], maxResults: 10, groupResults: true };
+  const defaults: ModuleSettings = { books: ALL_BOOK_CODES, maxResults: 10, groupResults: true };
   let current = defaults;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -69,7 +70,7 @@ function loadSettings(): ModuleSettings {
           .filter((value: string) => BOOK_OPTIONS.some((option) => option.value === value))
         : defaults.books;
       current = {
-        books: migratedBooks,
+        books: migratedBooks.length > 0 ? migratedBooks : defaults.books,
         maxResults: typeof parsed.maxResults === 'number' ? parsed.maxResults : defaults.maxResults,
         groupResults: typeof parsed.groupResults === 'boolean' ? parsed.groupResults : defaults.groupResults,
       };
@@ -363,17 +364,33 @@ export function SearchBookPage() {
                 className="mt-3 rounded-xl border border-gray-200 bg-white p-4 font-body shadow-sm dark:border-gray-700 dark:bg-gray-900 sm:p-5"
                 aria-label="Configurações da busca em livros"
               >
-                <div className="mb-3">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="font-body text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    Escolha até {MAX_SELECTED_BOOKS} livros.
+                    Selecione os livros para a pesquisa:
                   </h2>
+                  <div className="flex items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => updateSettings((current) => ({ ...current, books: ALL_BOOK_CODES }))}
+                      className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                      Selecionar todos
+                    </button>
+                    <span className="text-gray-300 dark:text-gray-600">|</span>
+                    <button
+                      type="button"
+                      onClick={() => updateSettings((current) => ({ ...current, books: [] }))}
+                      className="font-medium text-gray-500 hover:underline dark:text-gray-400"
+                    >
+                      Limpar
+                    </button>
+                  </div>
                 </div>
 
                 <BookPills
                   options={BOOK_OPTIONS}
                   selected={settings.books}
                   onChange={(books) => updateSettings((current) => ({ ...current, books }))}
-                  maxSelected={MAX_SELECTED_BOOKS}
                 />
 
                 <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 dark:border-gray-800 sm:flex-row sm:items-end sm:justify-between">
@@ -402,7 +419,11 @@ export function SearchBookPage() {
               </section>
             ) : (
               <div className="mt-2 flex flex-wrap justify-end gap-1.5 px-1" aria-label="Livros selecionados">
-                {selectedBookOptions.length > 0 ? (
+                {selectedBookOptions.length === BOOK_OPTIONS.length ? (
+                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] leading-tight text-blue-700 dark:border-blue-800/70 dark:bg-blue-950/40 dark:text-blue-300">
+                    Todos os livros selecionados ({BOOK_OPTIONS.length})
+                  </span>
+                ) : selectedBookOptions.length > 0 ? (
                   selectedBookOptions.map((book) => (
                     <span
                       key={book.value}

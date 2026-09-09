@@ -10,18 +10,18 @@ interface BookPillsProps {
   maxSelected?: number;
 }
 
-export function BookPills({ options, selected, onChange, maxSelected = 3 }: BookPillsProps) {
+export function BookPills({ options, selected, onChange, maxSelected }: BookPillsProps) {
   const toggle = (value: string) => {
     const isActive = selected.includes(value);
     if (isActive) {
       onChange(selected.filter((v) => v !== value));
       return;
     }
-    if (selected.length >= maxSelected) return;
+    if (typeof maxSelected === 'number' && selected.length >= maxSelected) return;
     onChange([...selected, value]);
   };
 
-  const limitReached = selected.length >= maxSelected;
+  const limitReached = typeof maxSelected === 'number' && selected.length >= maxSelected;
 
   return (
     <div>
@@ -53,7 +53,9 @@ export function BookPills({ options, selected, onChange, maxSelected = 3 }: Book
       </div>
 
       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        {selected.length} de {maxSelected} livros selecionados
+        {typeof maxSelected === 'number'
+          ? `${selected.length} de ${maxSelected} livros selecionados`
+          : `${selected.length} de ${options.length} livros selecionados`}
       </p>
     </div>
   );

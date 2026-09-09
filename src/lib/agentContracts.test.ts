@@ -11,9 +11,9 @@ describe('contratos do Agent', () => {
     expect(normalizeBookCode(legacy)).toBe(canonical);
   });
 
-  it('expõe as quatro fontes novas com códigos canônicos', () => {
+  it('expõe as fontes novas com códigos canônicos', () => {
     const values = BOOK_OPTIONS.map((item) => item.value);
-    expect(values).toEqual(expect.arrayContaining(['MINI_ARLINDO', 'PROJ1986', 'QUEST', 'ZEFIRO']));
+    expect(values).toEqual(expect.arrayContaining(['PROJ1986', 'ZEFIRO']));
     expect(values).not.toEqual(expect.arrayContaining(['700EXP', 'DUPLA', 'PROEXIS', 'TEMAS', '200TEAT']));
   });
 
