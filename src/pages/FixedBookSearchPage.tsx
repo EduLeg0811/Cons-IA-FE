@@ -3,12 +3,26 @@ import { Navbar } from '../components/Navbar';
 import { ResultsPanel } from '../components/ResultsPanel';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { ConversationalPrompt } from '../components/ConversationalPrompt';
-import { callLexical, callVerbeteSearch, downloadFile, type DownloadPayload, type VerbeteSearchField } from '../lib/api';
+import { callLexical, callVerbeteSearch, downloadFile, type DownloadPayload, type VerbeteSearchField, VERBETE_FIELD_MAP } from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
 import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
 import { useContainerWidth } from '../lib/containerWidth';
+
+export const VERBETE_FIELD_OPTIONS: Array<{ value: VerbeteSearchField; label: string; placeholder: string }> = [
+  { value: 'todos', label: 'Todos (envia todos)', placeholder: 'Termo para buscar em todos os campos do verbete...' },
+  { value: 'titulo', label: 'Título', placeholder: 'Termo para buscar no título do verbete...' },
+  { value: 'especialidade', label: 'Especialidade', placeholder: 'Especialidade da Conscienciologia (ex: Evoluciologia)...' },
+  { value: 'tematologia', label: 'Tematologia', placeholder: 'Tematologia (Homeostático, Neutro ou Nosográfico)...' },
+  { value: 'verbetografo', label: 'Verbetógrafo', placeholder: 'Nome do verbetógrafo / autor (ex: Waldo Vieira)...' },
+  { value: 'definologia', label: 'Definologia', placeholder: 'Termo para buscar na Definologia...' },
+  { value: 'frase_enfatica', label: 'Frase Enfática', placeholder: 'Termo para buscar na Frase Enfática...' },
+  { value: 'questionologia', label: 'Questionologia', placeholder: 'Termo para buscar na Questionologia...' },
+  { value: 'fatologia', label: 'Fatologia', placeholder: 'Termo para buscar na Fatologia...' },
+  { value: 'parafatologia', label: 'Parafatologia', placeholder: 'Termo para buscar na Parafatologia...' },
+  { value: 'argumentologia', label: 'Argumentologia', placeholder: 'Termo para buscar na Argumentologia...' },
+];
 
 interface FixedBookSearchPageProps {
   navTitle: string;
@@ -56,16 +70,20 @@ export function FixedBookSearchPage({
   fixedBookLabel,
   placeholder,
 }: FixedBookSearchPageProps) {
-  const requestedField = getQueryParam(['field']);
-  const verbeteField: VerbeteSearchField =
-    requestedField === 'titulo' || requestedField === 'autor' || requestedField === 'especialidade'
-      ? requestedField
-      : 'texto';
+  const [selectedField, setSelectedField] = useState<VerbeteSearchField>(() => {
+    if (fixedBook !== 'EC') return 'todos';
+    const raw = getQueryParam(['field', 'campo'])?.toLowerCase();
+    if (raw) {
+      if (raw === 'title' || raw === 'titulo') return 'titulo';
+      if (raw in VERBETE_FIELD_MAP || raw === 'autor' || raw === 'texto') {
+        return raw as VerbeteSearchField;
+      }
+    }
+    return 'titulo';
+  });
   const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
   const settingsRef = useRef(settings);
-  const [panelOpen, setPanelOpen] = useState(false);
-  const settingsPanelRef = useRef<HTMLDivElement>(null);
   const [term, setTerm] = useState(() => getInitialSearchQuery());
   const [stage, setStage] = useState<Stage>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -83,16 +101,6 @@ export function FixedBookSearchPage({
     setSettings(next);
     localStorage.setItem(storageKey, JSON.stringify(next));
   }, [storageKey]);
-
-  useEffect(() => {
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      if (panelOpen && !settingsPanelRef.current?.contains(event.target as Node)) {
-        setPanelOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', closeOnOutsideClick);
-    return () => document.removeEventListener('mousedown', closeOnOutsideClick);
-  }, [panelOpen]);
 
   const search = useCallback(async (forceLiteral = false, overrideTerm?: string) => {
     if (busyRef.current) return;
@@ -118,8 +126,8 @@ export function FixedBookSearchPage({
 
     const currentSettings = settingsRef.current;
     try {
-      const respLexical = fixedBook === 'EC' && verbeteField !== 'texto'
-        ? await callVerbeteSearch(trimmed, verbeteField, currentSettings.maxResults)
+      const respLexical = fixedBook === 'EC'
+        ? await callVerbeteSearch(trimmed, selectedField, currentSettings.maxResults)
         : await callLexical({
             term: trimmed,
             source: [fixedBook],
@@ -187,7 +195,7 @@ export function FixedBookSearchPage({
     } finally {
       busyRef.current = false;
     }
-  }, [term, fixedBook, moduleKey, fixedBookLabel, verbeteField]);
+  }, [term, fixedBook, moduleKey, fixedBookLabel, selectedField]);
 
   useEffect(() => {
     const initialQuery = getInitialSearchQuery();
@@ -231,63 +239,18 @@ export function FixedBookSearchPage({
 
       <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div className="relative">
-          <div ref={settingsPanelRef}>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setPanelOpen((v) => !v)}
-              title={panelOpen ? 'Fechar configurações' : 'Abrir configurações'}
-              aria-label={panelOpen ? 'Fechar configurações' : 'Abrir configurações'}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              <i className="fas fa-sliders-h" />
-            </button>
-            {downloadPayload && (
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-                title="Download as Word"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-blue-600 shadow-sm hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-800"
-              >
-                <i className={downloading ? 'fas fa-spinner fa-spin' : 'fas fa-file-word fa-lg'} />
-              </button>
-            )}
-          </div>
-
-          {panelOpen && (
-            <div className="absolute left-0 top-12 z-50 w-[min(420px,92vw)] rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-              <div className="w-full rounded-full bg-search-primary px-2 py-2 text-center text-sm font-medium text-white">
-                {fixedBookLabel}
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  Resultados (máximo)
-                  <input
-                    type="number"
-                    min={1}
-                    value={settings.maxResults}
-                    onChange={(e) => updateSettings({ maxResults: Number(e.target.value) || 1 })}
-                    className="w-16 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-          </div>
-
+          {/* Caixa de busca principal */}
           <div className="flex items-center gap-3 rounded-xl border-2 border-gray-200 bg-white p-3 focus-within:border-search-primary dark:border-gray-700 dark:bg-gray-900">
             <textarea
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              onFocus={() => setPanelOpen(false)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   search();
                 }
               }}
-              placeholder={placeholder}
+              placeholder={fixedBook === 'EC' ? (VERBETE_FIELD_OPTIONS.find((opt) => opt.value === selectedField)?.placeholder || placeholder) : placeholder}
               rows={1}
               className="flex-1 resize-none bg-transparent text-base text-gray-800 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
             />
@@ -300,6 +263,82 @@ export function FixedBookSearchPage({
             >
               <i className="fas fa-search" />
             </button>
+          </div>
+
+          {/* Controles abaixo do textbox: Seletor de Campo, Resultados (máximo) e Exportar Word */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              {fixedBook === 'EC' && (
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="verbete-field-select"
+                    className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                  >
+                    <i className="fas fa-filter text-search-primary text-[11px]" />
+                    Campo:
+                  </label>
+                  <div className="relative inline-block">
+                    <select
+                      id="verbete-field-select"
+                      value={selectedField}
+                      onChange={(e) => {
+                        const next = e.target.value as VerbeteSearchField;
+                        setSelectedField(next);
+                        const url = new URL(window.location.href);
+                        if (next === 'titulo') {
+                          url.searchParams.delete('field');
+                        } else {
+                          url.searchParams.set('field', next);
+                        }
+                        window.history.replaceState({}, '', url.toString());
+                      }}
+                      className="appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 focus:border-search-primary focus:outline-none focus:ring-2 focus:ring-search-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
+                    >
+                      {VERBETE_FIELD_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">
+                      <i className="fas fa-chevron-down" />
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="max-results-input"
+                  className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                >
+                  <i className="fas fa-list-ol text-search-primary text-[11px]" />
+                  Resultados (máximo):
+                </label>
+                <input
+                  id="max-results-input"
+                  type="number"
+                  min={1}
+                  max={200}
+                  value={settings.maxResults}
+                  onChange={(e) => updateSettings({ maxResults: Number(e.target.value) || 1 })}
+                  className="w-20 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 focus:border-search-primary focus:outline-none focus:ring-2 focus:ring-search-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
+                />
+              </div>
+            </div>
+
+            {downloadPayload && (
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                title="Download as Word"
+                className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-800"
+              >
+                <i className={downloading ? 'fas fa-spinner fa-spin' : 'fas fa-file-word fa-lg'} />
+                <span>Exportar Word</span>
+              </button>
+            )}
           </div>
         </div>
 

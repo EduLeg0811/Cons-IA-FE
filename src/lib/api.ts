@@ -33,13 +33,54 @@ export async function callLexical(params: LexicalSearchParams): Promise<LexicalS
   return response.json();
 }
 
-export type VerbeteSearchField = 'texto' | 'titulo' | 'autor' | 'especialidade';
+export type VerbeteSearchField =
+  | 'todos'
+  | 'titulo'
+  | 'especialidade'
+  | 'tematologia'
+  | 'verbetografo'
+  | 'autor'
+  | 'definologia'
+  | 'texto'
+  | 'frase_enfatica'
+  | 'questionologia'
+  | 'fatologia'
+  | 'parafatologia'
+  | 'argumentologia';
+
+export const VERBETE_FIELD_MAP: Record<string, string> = {
+  todos: 'all',
+  titulo: 'title',
+  title: 'title',
+  especialidade: 'area',
+  tematologia: 'theme',
+  verbetografo: 'author',
+  autor: 'author',
+  definologia: 'text',
+  texto: 'text',
+  frase_enfatica: 'frase_enfatica',
+  questionologia: 'questionologia',
+  fatologia: 'fatologia',
+  parafatologia: 'parafatologia',
+  argumentologia: 'argumentologia',
+};
+
 export async function callVerbeteSearch(
   term: string,
-  field: VerbeteSearchField,
+  field: VerbeteSearchField = 'titulo',
   limit = 10,
 ): Promise<LexicalSearchResponse> {
-  const bodyKey = { texto: 'text', titulo: 'title', autor: 'author', especialidade: 'area' }[field];
+  if (field === 'todos') {
+    return callLexical({
+      term,
+      source: ['EC'],
+      maxResults: limit,
+      flag_grouping: false,
+      fullBadges: false,
+    });
+  }
+
+  const bodyKey = VERBETE_FIELD_MAP[field] ?? 'text';
   const response = await fetch(`${API_BASE_URL}/api/lexical/verbetes/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
