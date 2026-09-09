@@ -9,8 +9,8 @@ interface LandingNavbarProps {
 }
 
 export function LandingNavbar({
-  navigationHref = 'classic.html',
-  navigationTitle = 'Ver todos os módulos',
+  navigationHref = 'index.html',
+  navigationTitle = 'Página inicial',
 }: LandingNavbarProps = {}) {
   const [theme, toggleTheme] = useTheme();
   const [scrolled, setScrolled] = useState(false);

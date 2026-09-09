@@ -6,7 +6,7 @@ import {
   useScroll,
   useTransform,
 } from 'framer-motion';
-import { ArrowRight, LayoutGrid } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LandingFooter } from './components/LandingFooter';
 import { LandingBibliomanciaCard } from './components/LandingBibliomanciaCard';
@@ -248,29 +248,6 @@ export function LandingPage() {
         {landingCategories.map((category, index) => (
           <CategoryCard key={category.key} category={category} reversed={index % 2 === 1} />
         ))}
-
-        <RevealSection>
-          <a
-            href="classic.html"
-            className="group relative flex items-center gap-6 overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/[.06] sm:p-9 dark:hover:shadow-black/30"
-          >
-            <div className="landing-checker absolute inset-0 opacity-[0.025] dark:opacity-[0.05]" />
-            <motion.div
-              className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary"
-              whileHover={reduceMotion ? undefined : { rotate: -8, scale: 1.1 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <LayoutGrid className="h-6 w-6 text-white" />
-            </motion.div>
-            <div className="relative min-w-0 flex-1">
-              <h2 className="mb-1 text-lg font-bold text-foreground sm:text-xl">Todos os Módulos</h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Veja todos os aplicativos, bots, buscas e referências em uma única página.
-              </p>
-            </div>
-            <ArrowRight className="relative h-5 w-5 shrink-0 text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-          </a>
-        </RevealSection>
       </main>
 
       <LandingFooter />
