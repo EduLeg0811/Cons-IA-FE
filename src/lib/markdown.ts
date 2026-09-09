@@ -77,8 +77,8 @@ const BOOK_NAMES: Record<string, string> = {
   DAC: 'Dicionário de Argumentos da Conscienciologia',
   PROJ: 'Projeciologia',
   CCG: 'Conscienciograma',
-  QUEST: 'Questões Minitertúlia',
-  MINI: 'Anotações Minitertúlia EDU',
+  //QUEST: 'Questões Minitertúlia',
+  //MINI: 'Anotações Minitertúlia EDU',
 };
 
 export function bookName(source: string | undefined | null): string {
