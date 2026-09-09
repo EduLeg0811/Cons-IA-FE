@@ -166,6 +166,37 @@ export function HomePage() {
                 external
                 onClick={() => logClick('flashcards_temas', 'Flashcards de Temas', '#')}
               />
+
+              <ToolCard
+                href="https://notebooklm.link.google/z0TeeClFPRcC"
+                title="Mapa mental das bases da Conscienciologia"
+                description={<em>Mapa mental</em>}
+                icon={<i className="fas fa-brain" />}
+                iconVariant="mancia"
+                external
+                onClick={() => logClick('mapa_mental', 'Mapa mental das bases', '#')}
+              />
+
+              <ToolCard
+                href="https://notebooklm.link.google/yiv8Jh4bPkIt"
+                title="Infográfico Paradigma Consciencial"
+                description={<em>Infográfico</em>}
+                icon={<i className="fas fa-chart-line" />}
+                iconVariant="mancia"
+                external
+                onClick={() => logClick('infografico_paradigma', 'Infográfico Paradigma Consciencial', '#')}
+              />
+
+              <ToolCard
+                href="https://notebooklm.link.google/vvohHByfcQJS"
+                title="Podcast"
+                description={<em>Do estado vibracional à evolução multidimensional</em>}
+                icon={<i className="fas fa-headset" />}
+                iconVariant="mancia"
+                external
+                onClick={() => logClick('podcast_evo', 'Podcast Consciência e Evolução', '#')}
+              />
+
             </Panel>
 
             <Panel accent="biblio" title="Bibliografia IA" subtitle="Referências de Livros, Artigos e Verbetes">
