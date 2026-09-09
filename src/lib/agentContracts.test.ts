@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { callVerbeteSearch } from './api';
+import { callVerbeteSearch, normalizeVerbeteField } from './api';
+import { normalizeVerbeteField as normalizeVerbeteFieldFromPage } from '../pages/FixedBookSearchPage';
 import { BOOK_OPTIONS, normalizeBookCode } from '../pages/SearchBookPage';
 
 describe('contratos do Agent', () => {
@@ -55,5 +56,37 @@ describe('contratos do Agent', () => {
       sources: ['EC'],
       limit: 7,
     });
+  });
+
+  it.each([
+    ['autor', 'verbetografo'],
+    ['author', 'verbetografo'],
+    ['verbetografo', 'verbetografo'],
+    ['verbetógrafo', 'verbetografo'],
+    ['AUTOR', 'verbetografo'],
+    ['titulo', 'titulo'],
+    ['title', 'titulo'],
+    ['título', 'titulo'],
+    ['definologia', 'definologia'],
+    ['texto', 'definologia'],
+    ['text', 'definologia'],
+    ['especialidade', 'especialidade'],
+    ['area', 'especialidade'],
+    ['área', 'especialidade'],
+    ['tematologia', 'tematologia'],
+    ['theme', 'tematologia'],
+    ['todos', 'todos'],
+    ['all', 'todos'],
+    ['frase_enfatica', 'frase_enfatica'],
+  ])('normaliza campo de verbete %s para %s', (raw, expected) => {
+    expect(normalizeVerbeteField(raw)).toBe(expected);
+    expect(normalizeVerbeteFieldFromPage(raw)).toBe(expected);
+  });
+
+  it('interpreta campo ausente ou desconhecido com fallback', () => {
+    expect(normalizeVerbeteField(null)).toBe('titulo');
+    expect(normalizeVerbeteField(undefined)).toBe('titulo');
+    expect(normalizeVerbeteField('', 'todos')).toBe('todos');
+    expect(normalizeVerbeteField('desconhecido', 'titulo')).toBe('titulo');
   });
 });

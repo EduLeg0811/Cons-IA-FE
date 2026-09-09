@@ -65,12 +65,63 @@ export const VERBETE_FIELD_MAP: Record<string, string> = {
   argumentologia: 'argumentologia',
 };
 
+export function normalizeVerbeteField(
+  raw?: string | null,
+  fallback: VerbeteSearchField = 'titulo',
+): VerbeteSearchField {
+  if (!raw) return fallback;
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  switch (cleaned) {
+    case 'autor':
+    case 'author':
+    case 'verbetografo':
+      return 'verbetografo';
+    case 'titulo':
+    case 'title':
+      return 'titulo';
+    case 'especialidade':
+    case 'area':
+      return 'especialidade';
+    case 'tematologia':
+    case 'theme':
+      return 'tematologia';
+    case 'definologia':
+    case 'texto':
+    case 'text':
+      return 'definologia';
+    case 'todos':
+    case 'all':
+      return 'todos';
+    case 'frase_enfatica':
+    case 'frase-enfatica':
+    case 'fraseenfatica':
+    case 'frase':
+      return 'frase_enfatica';
+    case 'questionologia':
+      return 'questionologia';
+    case 'fatologia':
+      return 'fatologia';
+    case 'parafatologia':
+      return 'parafatologia';
+    case 'argumentologia':
+      return 'argumentologia';
+    default:
+      return fallback;
+  }
+}
+
 export async function callVerbeteSearch(
   term: string,
   field: VerbeteSearchField = 'titulo',
   limit = 10,
 ): Promise<LexicalSearchResponse> {
-  if (field === 'todos') {
+  const normalizedField = normalizeVerbeteField(field, field);
+  if (normalizedField === 'todos') {
     return callLexical({
       term,
       source: ['EC'],
@@ -80,7 +131,7 @@ export async function callVerbeteSearch(
     });
   }
 
-  const bodyKey = VERBETE_FIELD_MAP[field] ?? 'text';
+  const bodyKey = VERBETE_FIELD_MAP[normalizedField] ?? VERBETE_FIELD_MAP[field] ?? 'text';
   const response = await fetch(`${API_BASE_URL}/api/lexical/verbetes/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

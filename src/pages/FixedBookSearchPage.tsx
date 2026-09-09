@@ -3,12 +3,22 @@ import { Navbar } from '../components/Navbar';
 import { ResultsPanel } from '../components/ResultsPanel';
 import { LoadingIndicator, ErrorMessage } from '../components/LoadingIndicator';
 import { ConversationalPrompt } from '../components/ConversationalPrompt';
-import { callLexical, callVerbeteSearch, downloadFile, type DownloadPayload, type VerbeteSearchField, VERBETE_FIELD_MAP } from '../lib/api';
+import {
+  callLexical,
+  callVerbeteSearch,
+  downloadFile,
+  type DownloadPayload,
+  type VerbeteSearchField,
+  VERBETE_FIELD_MAP,
+  normalizeVerbeteField,
+} from '../lib/api';
 import { CONFIG, logFeatureAccess } from '../lib/config';
 import { flattenDataEntries, delDuplicateItems, sortData, limitResultsPerSource, type FlattenedItem } from '../lib/formatters';
 import { isConversationalQuery } from '../lib/queryIntent';
 import { getQueryParam, getInitialSearchQuery } from '../lib/urlParams';
 import { useContainerWidth } from '../lib/containerWidth';
+
+export { normalizeVerbeteField };
 
 export const VERBETE_FIELD_OPTIONS: Array<{ value: VerbeteSearchField; label: string; placeholder: string }> = [
   { value: 'todos', label: 'Todos (envia todos)', placeholder: 'Termo para buscar em todos os campos do verbete...' },
@@ -72,14 +82,8 @@ export function FixedBookSearchPage({
 }: FixedBookSearchPageProps) {
   const [selectedField, setSelectedField] = useState<VerbeteSearchField>(() => {
     if (fixedBook !== 'EC') return 'todos';
-    const raw = getQueryParam(['field', 'campo'])?.toLowerCase();
-    if (raw) {
-      if (raw === 'title' || raw === 'titulo') return 'titulo';
-      if (raw in VERBETE_FIELD_MAP || raw === 'autor' || raw === 'texto') {
-        return raw as VerbeteSearchField;
-      }
-    }
-    return 'titulo';
+    const raw = getQueryParam(['field', 'campo']);
+    return normalizeVerbeteField(raw, 'titulo');
   });
   const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
@@ -96,6 +100,26 @@ export function FixedBookSearchPage({
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
+
+  useEffect(() => {
+    if (fixedBook !== 'EC' || typeof window === 'undefined') return;
+    const raw = getQueryParam(['field', 'campo']);
+    if (!raw) return;
+    const normalized = normalizeVerbeteField(raw, 'titulo');
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasRawParam = searchParams.has('field') || searchParams.has('campo');
+    const currentFieldParam = searchParams.get('field');
+    if (hasRawParam && (currentFieldParam !== normalized || searchParams.has('campo'))) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('campo');
+      if (normalized === 'titulo') {
+        url.searchParams.delete('field');
+      } else {
+        url.searchParams.set('field', normalized);
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [fixedBook]);
 
   const updateSettings = useCallback((next: ModuleSettings) => {
     setSettings(next);
@@ -239,34 +263,8 @@ export function FixedBookSearchPage({
 
       <div className={`mx-auto ${containerClass} px-4 pb-16 pt-[90px] transition-all duration-300`}>
         <div className="relative">
-          {/* Caixa de busca principal */}
-          <div className="flex items-center gap-3 rounded-xl border-2 border-gray-200 bg-white p-3 focus-within:border-search-primary dark:border-gray-700 dark:bg-gray-900">
-            <textarea
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  search();
-                }
-              }}
-              placeholder={fixedBook === 'EC' ? (VERBETE_FIELD_OPTIONS.find((opt) => opt.value === selectedField)?.placeholder || placeholder) : placeholder}
-              rows={1}
-              className="flex-1 resize-none bg-transparent text-base text-gray-800 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
-            />
-            <button
-              type="button"
-              onClick={() => search()}
-              disabled={stage === 'searching'}
-              aria-label="Search"
-              className="flex h-12 w-12 items-center justify-center rounded-lg border border-search-primary bg-search-primary text-white transition-colors hover:bg-search-secondary disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <i className="fas fa-search" />
-            </button>
-          </div>
-
-          {/* Controles abaixo do textbox: Seletor de Campo, Resultados (máximo) e Exportar Word */}
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+          {/* Controles acima do textbox: Seletor de Campo, Resultados (máximo) e Exportar Word */}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm">
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               {fixedBook === 'EC' && (
                 <div className="flex items-center gap-2">
@@ -339,6 +337,32 @@ export function FixedBookSearchPage({
                 <span>Exportar Word</span>
               </button>
             )}
+          </div>
+
+          {/* Caixa de busca principal */}
+          <div className="flex items-center gap-3 rounded-xl border-2 border-gray-200 bg-white p-3 focus-within:border-search-primary dark:border-gray-700 dark:bg-gray-900">
+            <textarea
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  search();
+                }
+              }}
+              placeholder={fixedBook === 'EC' ? (VERBETE_FIELD_OPTIONS.find((opt) => opt.value === selectedField)?.placeholder || placeholder) : placeholder}
+              rows={1}
+              className="flex-1 resize-none bg-transparent text-base text-gray-800 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
+            />
+            <button
+              type="button"
+              onClick={() => search()}
+              disabled={stage === 'searching'}
+              aria-label="Search"
+              className="flex h-12 w-12 items-center justify-center rounded-lg border border-search-primary bg-search-primary text-white transition-colors hover:bg-search-secondary disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <i className="fas fa-search" />
+            </button>
           </div>
         </div>
 
