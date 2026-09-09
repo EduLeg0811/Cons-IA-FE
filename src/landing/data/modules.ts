@@ -197,7 +197,7 @@ export const landingCategories: LandingCategory[] = [
         moduleKey: 'flashcards_temas',
       },
       {
-        title: 'Mapa mental do paradigma consciencial',
+        title: 'Mapa mental',
         description: 'Mapa mental das bases da Conscienciologia.',
         icon: Brain,
         href: 'https://notebooklm.link.google/z0TeeClFPRcC',
@@ -205,7 +205,7 @@ export const landingCategories: LandingCategory[] = [
         moduleKey: 'mapa_mental',
       },
       {
-        title: 'Infográfico Paradigma Consciencial',
+        title: 'Infográfico',
         description: 'Infográfico do Paradigma Consciencial.',
         icon: LineChart,
         href: 'https://notebooklm.link.google/yiv8Jh4bPkIt',
