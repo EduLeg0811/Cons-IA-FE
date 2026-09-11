@@ -59,7 +59,10 @@ function getInitialBooks(defaultBooks: string[]): string[] {
 }
 
 function loadSettings(): ModuleSettings {
-  const defaults: ModuleSettings = { books: ALL_BOOK_CODES, maxResults: 10, groupResults: true };
+  //export const ALL_BOOK_CODES = BOOK_OPTIONS.map((o) => o.value);
+  const DEFAULT_BOOK_CODES = ['LO', 'DAC', 'EXP']; // ou os códigos que desejar
+  const defaults: ModuleSettings = { books: DEFAULT_BOOK_CODES, maxResults: 10, groupResults: true };
+
   let current = defaults;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
