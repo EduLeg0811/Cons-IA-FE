@@ -21,17 +21,11 @@ import { useContainerWidth } from '../lib/containerWidth';
 export { normalizeVerbeteField };
 
 export const VERBETE_FIELD_OPTIONS: Array<{ value: VerbeteSearchField; label: string; placeholder: string }> = [
-  { value: 'todos', label: 'Todos (envia todos)', placeholder: 'Termo para buscar em todos os campos do verbete...' },
   { value: 'titulo', label: 'Título', placeholder: 'Termo para buscar no título do verbete...' },
-  { value: 'especialidade', label: 'Especialidade', placeholder: 'Especialidade da Conscienciologia (ex: Evoluciologia)...' },
-  { value: 'tematologia', label: 'Tematologia', placeholder: 'Tematologia (Homeostático, Neutro ou Nosográfico)...' },
   { value: 'verbetografo', label: 'Verbetógrafo', placeholder: 'Nome do verbetógrafo / autor (ex: Waldo Vieira)...' },
+  { value: 'especialidade', label: 'Especialidade', placeholder: 'Especialidade da Conscienciologia (ex: Evoluciologia)...' },
   { value: 'definologia', label: 'Definologia', placeholder: 'Termo para buscar na Definologia...' },
-  { value: 'frase_enfatica', label: 'Frase Enfática', placeholder: 'Termo para buscar na Frase Enfática...' },
-  { value: 'questionologia', label: 'Questionologia', placeholder: 'Termo para buscar na Questionologia...' },
-  { value: 'fatologia', label: 'Fatologia', placeholder: 'Termo para buscar na Fatologia...' },
-  { value: 'parafatologia', label: 'Parafatologia', placeholder: 'Termo para buscar na Parafatologia...' },
-  { value: 'argumentologia', label: 'Argumentologia', placeholder: 'Termo para buscar na Argumentologia...' },
+  { value: 'todos', label: 'Todo o verbete', placeholder: 'Termo para buscar em todo o verbete...' },
 ];
 
 interface FixedBookSearchPageProps {
@@ -80,11 +74,28 @@ export function FixedBookSearchPage({
   fixedBookLabel,
   placeholder,
 }: FixedBookSearchPageProps) {
-  const [selectedField, setSelectedField] = useState<VerbeteSearchField>(() => {
-    if (fixedBook !== 'EC') return 'todos';
-    const raw = getQueryParam(['field', 'campo']);
-    return normalizeVerbeteField(raw, 'titulo');
+  const [selectedFields, setSelectedFields] = useState<VerbeteSearchField[]>(() => {
+    if (fixedBook !== 'EC') return ['todos'];
+    const raw = getQueryParam(['fields', 'field', 'campo', 'campos']);
+    if (!raw) return ['titulo'];
+    const parts = raw.split(',').map((p) => normalizeVerbeteField(p, 'titulo'));
+    const valid = parts.filter((f) => VERBETE_FIELD_OPTIONS.some((opt) => opt.value === f));
+    return valid.length > 0 ? Array.from(new Set(valid)) : ['titulo'];
   });
+
+  const handleToggleField = (field: VerbeteSearchField) => {
+    setSelectedFields((prev) => {
+      if (field === 'todos') {
+        return ['todos'];
+      }
+      const withoutTodos = prev.filter((f) => f !== 'todos');
+      if (withoutTodos.includes(field)) {
+        if (withoutTodos.length === 1) return withoutTodos;
+        return withoutTodos.filter((f) => f !== field);
+      }
+      return [...withoutTodos, field];
+    });
+  };
   const { containerClass } = useContainerWidth();
   const [settings, setSettings] = useState<ModuleSettings>(() => loadSettings(storageKey));
   const settingsRef = useRef(settings);
@@ -103,23 +114,16 @@ export function FixedBookSearchPage({
 
   useEffect(() => {
     if (fixedBook !== 'EC' || typeof window === 'undefined') return;
-    const raw = getQueryParam(['field', 'campo']);
-    if (!raw) return;
-    const normalized = normalizeVerbeteField(raw, 'titulo');
-    const searchParams = new URLSearchParams(window.location.search);
-    const hasRawParam = searchParams.has('field') || searchParams.has('campo');
-    const currentFieldParam = searchParams.get('field');
-    if (hasRawParam && (currentFieldParam !== normalized || searchParams.has('campo'))) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('campo');
-      if (normalized === 'titulo') {
-        url.searchParams.delete('field');
-      } else {
-        url.searchParams.set('field', normalized);
-      }
-      window.history.replaceState({}, '', url.toString());
+    const url = new URL(window.location.href);
+    url.searchParams.delete('campo');
+    url.searchParams.delete('field');
+    if (selectedFields.length === 1 && selectedFields[0] === 'titulo') {
+      url.searchParams.delete('fields');
+    } else {
+      url.searchParams.set('fields', selectedFields.join(','));
     }
-  }, [fixedBook]);
+    window.history.replaceState({}, '', url.toString());
+  }, [fixedBook, selectedFields]);
 
   const updateSettings = useCallback((next: ModuleSettings) => {
     setSettings(next);
@@ -150,29 +154,42 @@ export function FixedBookSearchPage({
 
     const currentSettings = settingsRef.current;
     try {
-      const respLexical = fixedBook === 'EC'
-        ? await callVerbeteSearch(trimmed, selectedField, currentSettings.maxResults)
-        : await callLexical({
-            term: trimmed,
-            source: [fixedBook],
-            maxResults: currentSettings.maxResults,
-            flag_grouping: false,
-            fullBadges: CONFIG.FULL_BADGES,
-          });
+      let respResults: Array<Record<string, unknown>> = [];
 
-      const results = Array.isArray(respLexical.results)
-        ? limitResultsPerSource(respLexical.results as Array<{ source?: string }>, currentSettings.maxResults)
-        : [];
+      if (fixedBook !== 'EC') {
+        const respLexical = await callLexical({
+          term: trimmed,
+          source: [fixedBook],
+          maxResults: currentSettings.maxResults,
+          flag_grouping: false,
+          fullBadges: CONFIG.FULL_BADGES,
+        });
+        respResults = Array.isArray(respLexical.results) ? (respLexical.results as any) : [];
+      } else if (selectedFields.includes('todos')) {
+        const respLexical = await callVerbeteSearch(trimmed, 'todos', currentSettings.maxResults);
+        respResults = Array.isArray(respLexical.results) ? (respLexical.results as any) : [];
+      } else if (selectedFields.length === 1) {
+        const respLexical = await callVerbeteSearch(trimmed, selectedFields[0], currentSettings.maxResults);
+        respResults = Array.isArray(respLexical.results) ? (respLexical.results as any) : [];
+      } else {
+        const responses = await Promise.all(
+          selectedFields.map((f) => callVerbeteSearch(trimmed, f, currentSettings.maxResults))
+        );
+        respResults = responses.flatMap((r) => (Array.isArray(r.results) ? (r.results as any) : []));
+      }
 
-      const flattened = flattenDataEntries(results as any);
+      const flattened = flattenDataEntries(respResults as any);
       const unique = delDuplicateItems(flattened);
-      const sorted = sortData(unique);
+      const limited: FlattenedItem[] = fixedBook === 'EC'
+        ? unique.slice(0, currentSettings.maxResults)
+        : limitResultsPerSource<FlattenedItem>(unique, currentSettings.maxResults);
+      const sorted = sortData(limited);
 
       setSortedResults(sorted);
       setStage('done');
 
       setDownloadPayload({
-        results: unique.map((item, idx) => {
+        results: limited.map((item, idx) => {
           const title = item.title && item.title.toLowerCase() !== 'none' ? item.title.trim() : '';
           return {
             text: item.mk_text || item.raw_text,
@@ -207,7 +224,12 @@ export function FixedBookSearchPage({
           action: 'search',
           label: `Busca em ${fixedBookLabel}`,
           value: trimmed,
-          meta: { sources: [fixedBook], results_count: unique.length, max_results: currentSettings.maxResults },
+          meta: {
+            sources: [fixedBook],
+            fields: selectedFields,
+            results_count: limited.length,
+            max_results: currentSettings.maxResults,
+          },
         });
       } catch {
         // ignore logging errors
@@ -219,7 +241,7 @@ export function FixedBookSearchPage({
     } finally {
       busyRef.current = false;
     }
-  }, [term, fixedBook, moduleKey, fixedBookLabel, selectedField]);
+  }, [term, fixedBook, moduleKey, fixedBookLabel, selectedFields]);
 
   useEffect(() => {
     const initialQuery = getInitialSearchQuery();
@@ -265,46 +287,38 @@ export function FixedBookSearchPage({
         <div className="relative">
           {/* Controles acima do textbox: Seletor de Campo, Resultados (máximo) e Exportar Word */}
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm">
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              {fixedBook === 'EC' && (
-                <div className="flex items-center gap-2">
-                  <label
-                    htmlFor="verbete-field-select"
-                    className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                  >
-                    <i className="fas fa-filter text-search-primary text-[11px]" />
-                    Campo:
-                  </label>
-                  <div className="relative inline-block">
-                    <select
-                      id="verbete-field-select"
-                      value={selectedField}
-                      onChange={(e) => {
-                        const next = e.target.value as VerbeteSearchField;
-                        setSelectedField(next);
-                        const url = new URL(window.location.href);
-                        if (next === 'titulo') {
-                          url.searchParams.delete('field');
-                        } else {
-                          url.searchParams.set('field', next);
-                        }
-                        window.history.replaceState({}, '', url.toString());
-                      }}
-                      className="appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 focus:border-search-primary focus:outline-none focus:ring-2 focus:ring-search-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
+            {fixedBook === 'EC' ? (
+              <div className="flex flex-wrap items-center gap-5 sm:gap-7 py-1">
+                {VERBETE_FIELD_OPTIONS.map((opt) => {
+                  const isSelected = selectedFields.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      onClick={() => handleToggleField(opt.value)}
+                      className="group inline-flex items-center gap-2 cursor-pointer select-none text-sm sm:text-[15px] font-normal text-[#0066cc] dark:text-[#38bdf8] hover:opacity-85 transition-opacity"
                     >
-                      {VERBETE_FIELD_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">
-                      <i className="fas fa-chevron-down" />
-                    </span>
-                  </div>
-                </div>
-              )}
+                      <span
+                        className={`flex h-[18px] w-[18px] items-center justify-center rounded-full transition-all ${
+                          isSelected
+                            ? 'border-2 border-[#0070f3] dark:border-[#38bdf8]'
+                            : 'border border-gray-400 dark:border-gray-500 group-hover:border-gray-500'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="h-2.5 w-2.5 rounded-full bg-[#0070f3] dark:bg-[#38bdf8]" />
+                        )}
+                      </span>
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
 
+            <div className="ml-auto flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="max-results-input"
@@ -323,20 +337,20 @@ export function FixedBookSearchPage({
                   className="w-20 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 focus:border-search-primary focus:outline-none focus:ring-2 focus:ring-search-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
                 />
               </div>
-            </div>
 
-            {downloadPayload && (
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-                title="Download as Word"
-                className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-800"
-              >
-                <i className={downloading ? 'fas fa-spinner fa-spin' : 'fas fa-file-word fa-lg'} />
-                <span>Exportar Word</span>
-              </button>
-            )}
+              {downloadPayload && (
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  title="Download as Word"
+                  className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-800"
+                >
+                  <i className={downloading ? 'fas fa-spinner fa-spin' : 'fas fa-file-word fa-lg'} />
+                  <span>Exportar Word</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Caixa de busca principal */}
@@ -350,7 +364,15 @@ export function FixedBookSearchPage({
                   search();
                 }
               }}
-              placeholder={fixedBook === 'EC' ? (VERBETE_FIELD_OPTIONS.find((opt) => opt.value === selectedField)?.placeholder || placeholder) : placeholder}
+              placeholder={
+                fixedBook === 'EC'
+                  ? selectedFields.includes('todos')
+                    ? 'Termo para buscar em todo o verbete...'
+                    : selectedFields.length === 1
+                      ? VERBETE_FIELD_OPTIONS.find((opt) => opt.value === selectedFields[0])?.placeholder || placeholder
+                      : 'Termo para buscar nos campos selecionados...'
+                  : placeholder
+              }
               rows={1}
               className="flex-1 resize-none bg-transparent text-base text-gray-800 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
             />
