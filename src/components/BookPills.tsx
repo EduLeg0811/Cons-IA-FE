@@ -10,7 +10,7 @@ interface BookPillsProps {
   maxSelected?: number;
 }
 
-export function BookPills({ options, selected, onChange, maxSelected }: BookPillsProps) {
+export function BookPills({ options, selected, onChange, maxSelected = 3 }: BookPillsProps) {
   const toggle = (value: string) => {
     const isActive = selected.includes(value);
     if (isActive) {

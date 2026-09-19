@@ -40,6 +40,7 @@ export const ALL_BOOK_CODES = BOOK_OPTIONS.map((o) => o.value);
 
 const STORAGE_KEY = 'appConfig_searchBook';
 const PANEL_SEEN_SESSION_KEY = 'searchBookSettingsPanelSeen';
+const MAX_SELECTED_BOOKS = 3;
 
 interface ModuleSettings {
   books: string[];
@@ -55,7 +56,7 @@ function getInitialBooks(defaultBooks: string[]): string[] {
     .split(',')
     .map(normalizeBookCode)
     .filter((s) => validValues.has(s));
-  return parsed.length > 0 ? parsed : defaultBooks;
+  return parsed.length > 0 ? parsed.slice(0, MAX_SELECTED_BOOKS) : defaultBooks;
 }
 
 function loadSettings(): ModuleSettings {
@@ -71,6 +72,7 @@ function loadSettings(): ModuleSettings {
       const migratedBooks = Array.isArray(parsed.books)
         ? parsed.books.map((value: unknown) => normalizeBookCode(String(value)))
           .filter((value: string) => BOOK_OPTIONS.some((option) => option.value === value))
+          .slice(0, MAX_SELECTED_BOOKS)
         : defaults.books;
       current = {
         books: migratedBooks.length > 0 ? migratedBooks : defaults.books,
@@ -369,17 +371,9 @@ export function SearchBookPage() {
               >
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="font-body text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    Selecione os livros para a pesquisa:
+                    Escolha até {MAX_SELECTED_BOOKS} livros:
                   </h2>
                   <div className="flex items-center gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => updateSettings((current) => ({ ...current, books: ALL_BOOK_CODES }))}
-                      className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-                    >
-                      Selecionar todos
-                    </button>
-                    <span className="text-gray-300 dark:text-gray-600">|</span>
                     <button
                       type="button"
                       onClick={() => updateSettings((current) => ({ ...current, books: [] }))}
@@ -394,6 +388,7 @@ export function SearchBookPage() {
                   options={BOOK_OPTIONS}
                   selected={settings.books}
                   onChange={(books) => updateSettings((current) => ({ ...current, books }))}
+                  maxSelected={MAX_SELECTED_BOOKS}
                 />
 
                 <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 dark:border-gray-800 sm:flex-row sm:items-end sm:justify-between">
@@ -422,11 +417,7 @@ export function SearchBookPage() {
               </section>
             ) : (
               <div className="mt-2 flex flex-wrap justify-end gap-1.5 px-1" aria-label="Livros selecionados">
-                {selectedBookOptions.length === BOOK_OPTIONS.length ? (
-                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] leading-tight text-blue-700 dark:border-blue-800/70 dark:bg-blue-950/40 dark:text-blue-300">
-                    Todos os livros selecionados ({BOOK_OPTIONS.length})
-                  </span>
-                ) : selectedBookOptions.length > 0 ? (
+                {selectedBookOptions.length > 0 ? (
                   selectedBookOptions.map((book) => (
                     <span
                       key={book.value}
