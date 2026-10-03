@@ -8,13 +8,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="/styles/style.css">
   <link rel="icon" type="image/png" href="/icon.png">
   <style>
+    :root {
+      --bots-primary: #10b981;
+      --bots-primary-hover: #059669;
+      --bots-secondary: #34d399;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-300: #d4d4d4;
+      --gray-400: #9ca3af;
+      --gray-500: #737373;
+      --gray-800: #262626;
+      --gray-900: #171717;
+      --white: #ffffff;
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     html,
     body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body.theme-bots {
@@ -107,10 +131,20 @@
       align-items: center;
       width: 100%;
       min-height: 58px;
-      padding: 8px 10px;
+      padding: 8px 12px;
       gap: 10px;
-      border-radius: 18px;
+      border-radius: var(--radius-xl);
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       box-sizing: border-box;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+      cursor: text;
+    }
+
+    .search-input-wrapper:focus-within {
+      border-color: var(--bots-primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
     }
 
     .search-input {
@@ -122,6 +156,20 @@
       margin: 0;
       font-size: 0.95rem;
       line-height: 1.4;
+      font-family: inherit;
+      color: var(--gray-800);
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      -webkit-appearance: none;
+      appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .search-input::placeholder {
+      color: var(--gray-400);
     }
 
     .search-button {
@@ -134,8 +182,29 @@
       padding: 0;
       border: none;
       font-size: 0.95rem;
-      border-radius: 14px;
+      border-radius: var(--radius-lg);
+      background: var(--bots-primary);
+      color: var(--white);
       flex-shrink: 0;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 150ms ease, opacity 150ms ease;
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+    }
+
+    .search-button:hover:not(:disabled) {
+      background: var(--bots-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .search-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .search-button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
     }
 
     .search-button i {
@@ -290,7 +359,7 @@
     <div class="search-container">
       <div class="search-row">
         <div class="search-input-wrapper">
-          <textarea id="queryInput" placeholder="Olá Conscienciólogo!" class="search-input" rows="1"></textarea>
+          <textarea id="queryInput" placeholder="Olá Conscienciólogo!" class="search-input" rows="1" tabindex="0" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
           <button id="askButton" class="search-button" type="button" aria-label="Consultar">
             <i class="fas fa-paper-plane"></i>
           </button>
@@ -393,15 +462,19 @@
     function setStatus() { }
 
     function openInNewTabSilently(url) {
-      const tempLink = document.createElement('a');
-      tempLink.href = url;
-      tempLink.target = '_blank';
-      tempLink.rel = 'noopener noreferrer';
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
-      tempLink.click();
-      tempLink.remove();
-      return true;
+      try {
+        const tempLink = document.createElement('a');
+        tempLink.href = url;
+        tempLink.target = '_blank';
+        tempLink.rel = 'noopener noreferrer';
+        tempLink.style.display = 'none';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        setTimeout(() => tempLink.remove(), 100);
+        return true;
+      } catch (err) {
+        return false;
+      }
     }
 
     function openConsbot(query) {
@@ -412,10 +485,35 @@
         targetUrl = new URL('https://consbot.cons-ia.org');
       }
       targetUrl.searchParams.set('question', query);
+      const urlStr = targetUrl.toString();
 
-      const opened = window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
-      if (!opened) {
-        openInNewTabSilently(targetUrl.toString());
+      // 1. Tenta abrir em nova aba
+      let opened = null;
+      try {
+        opened = window.open(urlStr, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        opened = null;
+      }
+
+      // Se foi bloqueado pelo Safari/Chrome no Mac:
+      const isBlocked = !opened || opened.closed || typeof opened.closed === 'undefined';
+      if (isBlocked) {
+        // Tentativa 2: link simulado
+        openInNewTabSilently(urlStr);
+
+        // Fallback garantido para iframe: redireciona a página principal (top) ou o próprio iframe
+        // para que a busca nunca fique congelada no macOS
+        setTimeout(() => {
+          try {
+            if (window.top && window.top !== window) {
+              window.top.location.href = urlStr;
+              return;
+            }
+          } catch (e) {
+            // Em caso de restrição estrita cross-origin no acesso ao window.top
+          }
+          window.location.href = urlStr;
+        }, 150);
       }
       return true;
     }
@@ -468,6 +566,15 @@
         askConsbot();
       }
     });
+
+    const searchWrapperEl = document.querySelector('.search-input-wrapper');
+    if (searchWrapperEl) {
+      searchWrapperEl.addEventListener('click', (event) => {
+        if (event.target !== askButtonEl && !askButtonEl.contains(event.target)) {
+          queryInputEl.focus();
+        }
+      });
+    }
 
     setStatus('Pronto para consulta.');
   </script>
