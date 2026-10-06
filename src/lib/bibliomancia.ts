@@ -30,7 +30,6 @@ export async function commentBibliomanciaPensata(text: string, signal?: AbortSig
     reasoningEffort: CONFIG.REASONING_EFFORT,
     verbosity: CONFIG.VERBOSITY,
     vectorMaxResults: CONFIG.LLM_MAX_RESULTS,
-    maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS,
     // Rótulo; o servidor resolve para o id do vector store.
     vectorStores: [CONFIG.OPENAI_RAGBOT],
     systemPrompt: COMMENTARY_INSTRUCTIONS,

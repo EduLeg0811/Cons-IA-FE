@@ -182,15 +182,13 @@ export async function callRandomPensata(params: RandomPensataParams): Promise<Pe
   return response.json();
 }
 
-// Contrato único de /api/llm. Os modelos GPT-5.6 são de raciocínio e rejeitam
-// `temperature`; o comportamento é ajustado por reasoningEffort e verbosity.
+
 export interface LlmQueryParams {
   query: string;
   model: string;
   vectorStores: string[];
   systemPrompt: string | null;
   vectorMaxResults?: number;
-  maxOutputTokens?: number;
   reasoningEffort?: string;
   verbosity?: string;
   // Devolvido como `responseId`; reenvie para continuar a conversa.

@@ -3,7 +3,6 @@ export interface AppConfig {
   REASONING_EFFORT: string;
   VERBOSITY: string;
   LLM_MAX_RESULTS: number;
-  MAX_OUTPUT_TOKENS: number;
   MAX_RESULTS_DISPLAY: number;
   OPENAI_RAGBOT: string;
   FULL_BADGES: boolean;
@@ -11,15 +10,12 @@ export interface AppConfig {
 }
 
 const DEFAULT_CONFIG: AppConfig = {
-  // Espelha MODEL_DEFAULT em Main-Server/app/config.py. Sem temperatura: os
-  // modelos GPT-5.6 rejeitam o parâmetro.
-  MODEL_LLM: 'gpt-5.6-terra',
+
+  MODEL_LLM: 'gpt-6-luna',
   REASONING_EFFORT: 'low',
   VERBOSITY: 'low',
-  LLM_MAX_RESULTS: 3,
-  MAX_OUTPUT_TOKENS: 1000,
+  LLM_MAX_RESULTS: 5,
   MAX_RESULTS_DISPLAY: 100,
-  // Apesar do nome herdado do ragbot, hoje só a Bibliomancia usa este vector store.
   OPENAI_RAGBOT: 'ALLWV',
   FULL_BADGES: false,
   DESCRITIVOS: true,
@@ -50,7 +46,7 @@ export const CONFIG: AppConfig = loadRuntimeConfig();
 
 const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
 
-const PROD_BASE = 'https://main-server-vim3.onrender.com';
+const PROD_BASE = 'https://server.cons-ia.org/';
 const LOCAL_BASE = 'http://127.0.0.1:8000';
 
 function resolveApiBaseUrl(): string {
